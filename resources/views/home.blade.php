@@ -13,12 +13,12 @@
     <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between">
         <div class="flex items-center gap-4">
             <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-12">
-            <h1 class="text-2xl font-bold text-indigo-600">Ecodéli</h1>
+            <h1 class="text-2xl font-bold text-indigo-600">Ecodeli</h1>
         </div>
         <div class="flex gap-4 items-center">
             @auth
                 <!-- Si l'utilisateur est connecté -->
-                <a href="{{ route(Auth::user()->role . '.dashboard') }}"
+                <a href="{{ dashboard_route_for(Auth::user()->role) }}"
                    class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow">
                     Accéder à mon espace
                 </a>
@@ -41,9 +41,13 @@
     <p class="text-lg md:text-xl max-w-2xl mx-auto text-gray-600 mb-8">
         Ecodéli connecte commerçants, livreurs, prestataires et clients dans une démarche écoresponsable et locale.
     </p>
-    <a href="{{ route('register') }}" class="inline-block px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-lg font-medium shadow">
-        Créer un compte
-    </a>
+    @auth
+
+    @else
+        <a href="{{ route('register') }}" class="inline-block px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-lg font-medium shadow">
+            Créer un compte
+        </a>
+    @endauth
 </section>
 
 <!-- Footer -->

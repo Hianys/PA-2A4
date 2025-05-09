@@ -44,7 +44,7 @@
             <x-input-label for="role" :value="__('Rôle')" />
 
             <select id="role" name="role" required class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:ring focus:ring-indigo-200">
-                <option value="">-- Choisissez un rôle --</option>
+                <option value="" hidden selected>-- Choisissez un rôle --</option>
                 <option value="client">Client</option>
                 <option value="livreur">Livreur</option>
                 <option value="commercant">Commerçant</option>

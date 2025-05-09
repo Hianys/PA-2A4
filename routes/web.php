@@ -5,11 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('home');
-});
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->name('home');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/client/dashboard', function () {
@@ -27,6 +23,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/prestataire/dashboard', function () {
         return view('dashboards.provider');
     })->name('provider.dashboard');
+
+    Route::get('/admin/dashboard/', function () {
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'Accès interdit');
+        }
+        return view('dashboards.admin');
+    })->name('admin.dashboard');
+
 });
 
 
@@ -35,5 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+
 
 require __DIR__.'/auth.php';

@@ -3,10 +3,10 @@
         <div class="flex justify-between h-16">
             <!-- Logo + Dashboard link -->
             <div class="flex items-center space-x-4">
-                <a href="{{ route('dashboard') }}">
-                    <x-application-logo class="block h-9 w-auto" />
+                <a href="{{ route('home') }}">
+                    <x-application-logo class="h-8 w-auto sm:h-10" />
                 </a>
-                <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                <x-nav-link :href="dashboard_route_for(Auth::user()->role)" :active="request()->url() === dashboard_route_for(Auth::user()->role)">
                     {{ __('Dashboard') }}
                 </x-nav-link>
             </div>
@@ -59,7 +59,7 @@
     <!-- Mobile menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+            <x-responsive-nav-link :href="dashboard_route_for(Auth::user()->role)" :active="request()->url() === dashboard_route_for(Auth::user()->role)">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
         </div>
