@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,13 +25,16 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboards.provider');
     })->name('provider.dashboard');
 
-    Route::get('/admin/dashboard/', function () {
-        if (Auth::user()->role !== 'admin') {
-            abort(403, 'Accès interdit');
-        }
-        return view('dashboards.admin');
-    })->name('admin.dashboard');
+    Route::get('/admin/dashboard/', [AdminController::class, 'index'])
+        ->name('admin.dashboard');
 
+});
+
+//Actions utilisateurs admin
+Route::middleware(['auth'])->group(function () {
+    Route::patch('/admin/users/{id}/promote', [AdminController::class, 'promote'])->name('admin.promote');
+    Route::patch('/admin/users/{id}/demote', [AdminController::class, 'demote'])->name('admin.demote');
+    Route::delete('/admin/users/{id}', [AdminController::class, 'destroy'])->name('admin.delete');
 });
 
 
