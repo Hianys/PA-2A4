@@ -2,12 +2,16 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AnnonceController;
 use Illuminate\Support\Facades\Route;
 
+//Route de la page d'accueil
 Route::get('/', function () {
     return view('home');
 })->name('home');
 
+
+//Routes des différents dashboards
 Route::middleware(['auth'])->group(function () {
     Route::get('/client/dashboard', function () {
         return view('dashboards.client');
@@ -37,7 +41,13 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/admin/users/{id}', [AdminController::class, 'destroy'])->name('admin.delete');
 });
 
+//Gestion des annonces pour les clients et commerçants
+Route::middleware(['auth'])->group(function () {
+    Route::get('/client/annonces', [AnnonceController::class, 'index'])->name('client.annonces.index');
+    Route::post('/client/annonces', [AnnonceController::class, 'store'])->name('client.annonces.store');
+});
 
+//Actions dans le profil de l'utilisateur
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
