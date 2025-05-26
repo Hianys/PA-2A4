@@ -19,13 +19,21 @@ class AnnonceController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'from_city' => 'required|string|max:255',
-            'to_city' => 'required|string|max:255',
-            'preferred_date' => 'required|date',
             'type' => 'required|in:transport,service',
+            'preferred_date' => 'nullable|date',
+            'from_city' => 'nullable|string|max:255',
+            'to_city' => 'nullable|string|max:255',
         ]);
 
-        auth()->user()->annonces()->create($request->all());
+        Annonce::create([
+            'user_id' => auth()->id(),
+            'title' => $request->title,
+            'description' => $request->description,
+            'type' => $request->type,
+            'preferred_date' => $request->preferred_date,
+            'from_city' => $request->from_city,
+            'to_city' => $request->to_city,
+        ]);
 
         return redirect()->route('client.annonces.index')->with('success', 'Annonce créée avec succès.');
     }

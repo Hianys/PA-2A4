@@ -3,82 +3,105 @@
         <h2 class="text-xl font-semibold">Mes annonces</h2>
     </x-slot>
 
-    <div class="max-w-2xl mx-auto py-6 space-y-10">
-        @if (session('success'))
-            <div class="bg-green-100 text-green-700 border border-green-300 p-3 rounded mb-4">
-                {{ session('success') }}
-            </div>
-        @endif
+    <div class="max-w-3xl mx-auto py-6 space-y-8">
 
-        {{-- Formulaire de création --}}
-            <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-lg font-semibold mb-4">Nouvelle annonce</h3>
-                <form action="{{ route('client.annonces.store') }}" method="POST" class="bg-white p-6 shadow rounded space-y-4 mb-8">
-            @csrf
+        {{-- Retour au dashboard --}}
+        <div>
+            <a href="{{ route('client.dashboard') }}" class="text-indigo-600 hover:underline text-sm">
+                ← Retour au tableau de bord
+            </a>
+        </div>
 
-            <div>
-                <label class="block font-medium">Titre</label>
-                <input type="text" name="title" class="w-full border rounded px-3 py-2" required>
-            </div>
+        {{-- Formulaire --}}
+        <div class="bg-white shadow rounded-lg p-6 max-w-2xl mx-auto">
+            <h3 class="text-lg font-semibold mb-4">Nouvelle annonce</h3>
 
-            <div>
-                <label class="block font-medium">Description</label>
-                <textarea name="description" class="w-full border rounded px-3 py-2"></textarea>
-            </div>
+            <form method="POST" action="{{ route('client.annonces.store') }}" class="space-y-6 max-w-2xl mx-auto">
+                @csrf
 
-            <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block font-medium">Ville de départ</label>
-                    <input type="text" name="from_city" class="w-full border rounded px-3 py-2" required>
+                    <label for="title" class="block text-sm font-medium text-gray-700">Titre</label>
+                    <x-text-input id="title" name="title" class="mt-1 max-w-md" required />
                 </div>
+
                 <div>
-                    <label class="block font-medium">Ville d'arrivée</label>
-                    <input type="text" name="to_city" class="w-full border rounded px-3 py-2" required>
+                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <x-textarea id="description" name="description" rows="4" class="mt-1 max-w-md" />
                 </div>
-            </div>
 
-            <div>
-                <label class="block font-medium">Date souhaitée</label>
-                <input type="date" name="preferred_date" class="w-full border rounded px-3 py-2" required>
-            </div>
+                <div>
+                    <label for="preferred_date" class="block text-sm font-medium text-gray-700">Date souhaitée</label>
+                    <x-text-input type="date" id="preferred_date" name="preferred_date" class="mt-1" />
+                </div>
 
-            <div>
-                <label class="block font-medium">Type</label>
-                <select name="type" class="w-full border rounded px-3 py-2" required>
-                    <option value="transport">Transport</option>
-                    <option value="service">Service</option>
-                </select>
-            </div>
+                <div>
+                    <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
+                    <select name="type" id="type" onchange="toggleFields()" class="mt-1 block w-full rounded border-gray-300">
+                        <option value="transport">Transport</option>
+                        <option value="service">Service</option>
+                    </select>
+                </div>
 
-            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                Créer l'annonce
-            </button>
-        </form>
-            </div>
+                {{-- Champs spécifiques au transport --}}
+                <div id="transport-fields" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label for="from_city" class="block text-sm font-medium text-gray-700">Ville de départ</label>
+                            <x-text-input id="from_city" name="from_city" class="mt-1 max-w-md" />
+                        </div>
+                        <div>
+                            <label for="to_city" class="block text-sm font-medium text-gray-700">Ville d'arrivée</label>
+                            <x-text-input id="to_city" name="to_city" class="mt-1" />
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                    Créer l'annonce
+                </button>
+            </form>
+        </div>
 
         {{-- Liste des annonces --}}
         @if ($annonces->count())
-                <div class="bg-white shadow rounded-lg p-6">
-            <h3 class="text-lg font-semibold mb-3">Vos annonces</h3>
-            <ul class="space-y-4">
-                @foreach ($annonces as $annonce)
-                    <li class="bg-white p-4 shadow rounded">
-                        <div class="flex justify-between">
-                            <div>
-                                <h4 class="font-bold">{{ $annonce->title }} <span class="ml-2 text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">{{ ucfirst($annonce->type) }}</span></h4>
-                                <p class="text-sm text-gray-600">{{ $annonce->description }}</p>
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Vos annonces</h3>
+                <ul class="space-y-4">
+                    @foreach ($annonces as $annonce)
+                        <li class="border rounded p-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-bold">{{ $annonce->title }}
+                                        <span class="ml-2 text-xs px-2 py-1 rounded bg-gray-200 text-gray-800">
+                                            {{ ucfirst($annonce->type) }}
+                                        </span>
+                                    </h4>
+                                    <p class="text-sm text-gray-600 mt-1">{{ $annonce->description }}</p>
+                                </div>
+                                @if ($annonce->type === 'transport')
+                                    <div class="text-sm text-right text-gray-500">
+                                        {{ $annonce->from_city }} → {{ $annonce->to_city }}<br>
+                                        {{ \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') }}
+                                    </div>
+                                @endif
                             </div>
-                            <div class="text-right text-sm text-gray-500">
-                                {{ $annonce->from_city }} → {{ $annonce->to_city }}<br>
-                                le {{ \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') }}
-                            </div>
-                        </div>
-                    </li>
-                @endforeach
-            </ul>
-                </div>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
         @else
-            <p>Aucune annonce pour le moment.</p>
+            <p class="text-center text-gray-500">Aucune annonce pour le moment.</p>
         @endif
     </div>
+
+    {{-- Script pour champs dynamiques --}}
+    <script>
+        function toggleFields() {
+            const type = document.getElementById('type').value;
+            const transportFields = document.getElementById('transport-fields');
+            transportFields.style.display = (type === 'transport') ? 'block' : 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', toggleFields);
+    </script>
 </x-app-layout>

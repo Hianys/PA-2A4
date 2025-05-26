@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AnnonceController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TransportSegmentController;
 
 //Route de la page d'accueil
 Route::get('/', function () {
@@ -45,6 +46,13 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/client/annonces', [AnnonceController::class, 'index'])->name('client.annonces.index');
     Route::post('/client/annonces', [AnnonceController::class, 'store'])->name('client.annonces.store');
+});
+
+//Prise en charge des annonces de type transport pour les Livreurs
+Route::middleware('auth')->group(function () {
+    Route::get('/livreur/annonces', [TransportSegmentController::class, 'index'])->name('delivery.annonces.index');
+    Route::get('/livreur/annonces/{annonce}', [TransportSegmentController::class, 'show'])->name('delivery.annonces.show');
+    Route::post('/livreur/annonces/{annonce}/segment', [TransportSegmentController::class, 'store'])->name('segments.store');
 });
 
 //Actions dans le profil de l'utilisateur

@@ -20,4 +20,10 @@ class Annonce extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function segments()
+    {
+        return $this->hasMany(TransportSegment::class);
+    }
+
 }
