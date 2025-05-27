@@ -42,9 +42,10 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/admin/users/{id}', [AdminController::class, 'destroy'])->name('admin.delete');
 });
 
-//Gestion des annonces pour les clients et commerçants
+//Gestion des annonces pour les clients
 Route::middleware(['auth'])->group(function () {
     Route::get('/client/annonces', [AnnonceController::class, 'index'])->name('client.annonces.index');
+    Route::get('/client/annonces/{annonce}', [AnnonceController::class, 'show'])->name('client.annonces.show');
     Route::post('/client/annonces', [AnnonceController::class, 'store'])->name('client.annonces.store');
 });
 
@@ -53,6 +54,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/livreur/annonces', [TransportSegmentController::class, 'index'])->name('delivery.annonces.index');
     Route::get('/livreur/annonces/{annonce}', [TransportSegmentController::class, 'show'])->name('delivery.annonces.show');
     Route::post('/livreur/annonces/{annonce}/segment', [TransportSegmentController::class, 'store'])->name('segments.store');
+    Route::put('/client/annonces/{annonce}', [AnnonceController::class, 'update'])->name('client.annonces.update');
+    Route::delete('/client/annonces/{annonce}', [AnnonceController::class, 'destroy'])->name('client.annonces.destroy');
 });
 
 //Actions dans le profil de l'utilisateur

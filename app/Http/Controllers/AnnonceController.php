@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Annonce;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AnnonceController extends Controller
 {
@@ -37,5 +38,49 @@ class AnnonceController extends Controller
 
         return redirect()->route('client.annonces.index')->with('success', 'Annonce créée avec succès.');
     }
+
+    public function show(Annonce $annonce)
+    {
+        if ($annonce->user_id !== auth()->id() && Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+
+        return view('client.annonces.show', compact('annonce'));
+    }
+
+    public function update(Request $request, Annonce $annonce)
+    {
+        // Empêche la modification par un autre utilisateur
+        if ($annonce->user_id !== auth()->id() && Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'from_city' => 'nullable|string|max:255',
+            'to_city' => 'nullable|string|max:255',
+            'preferred_date' => 'nullable|date',
+        ]);
+
+        $annonce->update($request->only([
+            'title', 'description', 'from_city', 'to_city', 'preferred_date'
+        ]));
+
+        return redirect()->route('client.annonces.show', $annonce)->with('success', 'Annonce mise à jour.');
+    }
+
+    public function destroy(Annonce $annonce)
+    {
+        if ($annonce->user_id !== auth()->id() && Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $annonce->delete();
+
+        return redirect()->route('client.annonces.index')->with('success', 'Annonce supprimée.');
+    }
+
+
 }
 

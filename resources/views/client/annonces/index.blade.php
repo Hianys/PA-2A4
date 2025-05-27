@@ -5,7 +5,7 @@
 
     <div class="max-w-3xl mx-auto py-6 space-y-8">
 
-        {{-- Retour au dashboard --}}
+        {{-- Retour --}}
         <div>
             <a href="{{ route('client.dashboard') }}" class="text-indigo-600 hover:underline text-sm">
                 ← Retour au tableau de bord
@@ -13,20 +13,20 @@
         </div>
 
         {{-- Formulaire --}}
-        <div class="bg-white shadow rounded-lg p-6 max-w-2xl mx-auto">
+        <div class="bg-white shadow rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-4">Nouvelle annonce</h3>
 
-            <form method="POST" action="{{ route('client.annonces.store') }}" class="space-y-6 max-w-2xl mx-auto">
+            <form method="POST" action="{{ route('client.annonces.store') }}" class="space-y-4 relative">
                 @csrf
 
                 <div>
                     <label for="title" class="block text-sm font-medium text-gray-700">Titre</label>
-                    <x-text-input id="title" name="title" class="mt-1 max-w-md" required />
+                    <x-text-input id="title" name="title" class="mt-1" required />
                 </div>
 
                 <div>
                     <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                    <x-textarea id="description" name="description" rows="4" class="mt-1 max-w-md" />
+                    <x-textarea id="description" name="description" rows="4" class="mt-1" />
                 </div>
 
                 <div>
@@ -44,15 +44,16 @@
 
                 {{-- Champs spécifiques au transport --}}
                 <div id="transport-fields" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label for="from_city" class="block text-sm font-medium text-gray-700">Ville de départ</label>
-                            <x-text-input id="from_city" name="from_city" class="mt-1 max-w-md" />
-                        </div>
-                        <div>
-                            <label for="to_city" class="block text-sm font-medium text-gray-700">Ville d'arrivée</label>
-                            <x-text-input id="to_city" name="to_city" class="mt-1" />
-                        </div>
+                    <div class="relative">
+                        <label for="from_city" class="block text-sm font-medium text-gray-700">Ville de départ</label>
+                        <x-text-input id="from_city" name="from_city" class="mt-1" autocomplete="off" />
+                        <ul id="from_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
+                    </div>
+
+                    <div class="relative">
+                        <label for="to_city" class="block text-sm font-medium text-gray-700">Ville d’arrivée</label>
+                        <x-text-input id="to_city" name="to_city" class="mt-1" autocomplete="off" />
+                        <ul id="to_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
                     </div>
                 </div>
 
@@ -71,7 +72,9 @@
                         <li class="border rounded p-4">
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <h4 class="font-bold">{{ $annonce->title }}
+                                    <a href="{{ route('client.annonces.show', $annonce) }}">
+                                        <h4 class="font-bold">{{ $annonce->title }}
+                                    </a>
                                         <span class="ml-2 text-xs px-2 py-1 rounded bg-gray-200 text-gray-800">
                                             {{ ucfirst($annonce->type) }}
                                         </span>
@@ -94,7 +97,9 @@
         @endif
     </div>
 
-    {{-- Script pour champs dynamiques --}}
+    {{-- Scripts --}}
+    <x-autocomplete-script />
+
     <script>
         function toggleFields() {
             const type = document.getElementById('type').value;
