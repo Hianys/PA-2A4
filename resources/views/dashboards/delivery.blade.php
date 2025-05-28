@@ -10,7 +10,9 @@
 
             <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-6 rounded-lg shadow-md">
                 <h3 class="text-xl font-semibold mb-2">Colis à livrer</h3>
-                <p class="text-gray-600 dark:text-gray-300">Aucun colis en attente pour le moment.</p>
+                <a href="{{ route('delivery.annonces.index') }}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                    Accéder aux livraisons
+                </a>
             </div>
 
             <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-6 rounded-lg shadow-md">

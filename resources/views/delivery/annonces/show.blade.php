@@ -35,11 +35,13 @@
                     <div>
                         <label for="from_city" class="block text-sm font-medium text-gray-700">Ville de départ</label>
                         <input type="text" name="from_city" id="from_city" required class="w-full border rounded px-3 py-2">
+                        <ul id="from_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
                     </div>
 
                     <div>
                         <label for="to_city" class="block text-sm font-medium text-gray-700">Ville d’arrivée</label>
                         <input type="text" name="to_city" id="to_city" required class="w-full border rounded px-3 py-2">
+                        <ul id="to_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
                     </div>
                 </div>
 
@@ -69,4 +71,6 @@
         </div>
 
     </div>
+
+    <x-autocomplete-script />
 </x-app-layout>
