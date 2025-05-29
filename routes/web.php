@@ -47,15 +47,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/client/annonces', [AnnonceController::class, 'index'])->name('client.annonces.index');
     Route::get('/client/annonces/{annonce}', [AnnonceController::class, 'show'])->name('client.annonces.show');
     Route::post('/client/annonces', [AnnonceController::class, 'store'])->name('client.annonces.store');
+    Route::put('/client/annonces/{annonce}', [AnnonceController::class, 'update'])->name('client.annonces.update');
+    Route::delete('/client/annonces/{annonce}', [AnnonceController::class, 'destroy'])->name('client.annonces.destroy');
 });
 
 //Prise en charge des annonces de type transport pour les Livreurs
 Route::middleware('auth')->group(function () {
-    Route::get('/livreur/annonces', [TransportSegmentController::class, 'index'])->name('delivery.annonces.index');
-    Route::get('/livreur/annonces/{annonce}', [TransportSegmentController::class, 'show'])->name('delivery.annonces.show');
+    Route::get('/livreur/annonces', [AnnonceController::class, 'index'])->name('delivery.annonces.index');
+    Route::get('/livreur/annonces/{annonce}', [AnnonceController::class, 'show'])->name('delivery.annonces.show');
     Route::post('/livreur/annonces/{annonce}/segment', [TransportSegmentController::class, 'store'])->name('segments.store');
-    Route::put('/client/annonces/{annonce}', [AnnonceController::class, 'update'])->name('client.annonces.update');
-    Route::delete('/client/annonces/{annonce}', [AnnonceController::class, 'destroy'])->name('client.annonces.destroy');
+    Route::get('/livreur/mes-livraisons', [TransportSegmentController::class, 'mesLivraisons'])->name('delivery.segments.index');
+    Route::patch('livreur/segments/{segment}/status', [TransportSegmentController::class, 'updateStatus'])->name('segments.updateStatus');
+
 });
 
 //Actions dans le profil de l'utilisateur

@@ -1,76 +1,91 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold">Annonce : {{ $annonce->title }}</h2>
+        <h2 class="text-xl font-semibold">Détail de l'annonce à livrer</h2>
     </x-slot>
 
-    <div class="max-w-4xl mx-auto py-6 space-y-8">
-        <a href="{{ route('delivery.annonces.index') }}" class="text-sm text-indigo-600 hover:underline">
-            ← Retour à la liste des annonces
-        </a>
+    <div class="max-w-4xl mx-auto py-6 space-y-6">
+
+        {{-- Lien retour --}}
+        <div>
+            <a href="{{ route('delivery.annonces.index') }}" class="text-indigo-600 hover:underline text-sm">
+                ← Retour à la liste des annonces
+            </a>
+        </div>
 
         {{-- Détails de l’annonce --}}
-        <div class="bg-white p-6 rounded shadow">
-            <h3 class="text-lg font-semibold mb-4">Détails de l’annonce</h3>
-            <p><strong>Type :</strong> {{ ucfirst($annonce->type) }}</p>
-            <p><strong>Description :</strong> {{ $annonce->description }}</p>
-            <p><strong>Trajet :</strong> {{ $annonce->from_city }} → {{ $annonce->to_city }}</p>
-            <p><strong>Date souhaitée :</strong> {{ \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') }}</p>
-        </div>
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-bold">{{ $annonce->title }}</h3>
+            <p class="text-sm text-gray-600 mt-2">{{ $annonce->description }}</p>
 
-        {{-- Formulaire de prise en charge partielle --}}
-        <div class="bg-white p-6 rounded shadow">
-            <h3 class="text-lg font-semibold mb-4">Proposer une prise en charge partielle</h3>
-
-            @if(session('success'))
-                <p class="text-green-600 mb-3">{{ session('success') }}</p>
-            @endif
-            @if(session('error'))
-                <p class="text-red-600 mb-3">{{ session('error') }}</p>
-            @endif
-
-            <form action="{{ route('segments.store', $annonce) }}" method="POST" class="space-y-4">
-                @csrf
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="from_city" class="block text-sm font-medium text-gray-700">Ville de départ</label>
-                        <input type="text" name="from_city" id="from_city" required class="w-full border rounded px-3 py-2">
-                        <ul id="from_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
-                    </div>
-
-                    <div>
-                        <label for="to_city" class="block text-sm font-medium text-gray-700">Ville d’arrivée</label>
-                        <input type="text" name="to_city" id="to_city" required class="w-full border rounded px-3 py-2">
-                        <ul id="to_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
-                    </div>
+            @if ($annonce->type === 'transport')
+                <div class="mt-4 text-sm text-gray-700">
+                    <p><strong>De :</strong> {{ $annonce->from_city }}</p>
+                    <p><strong>À :</strong> {{ $annonce->to_city }}</p>
+                    <p><strong>Date souhaitée :</strong> {{ \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') }}</p>
                 </div>
-
-                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                    Valider la prise en charge
-                </button>
-            </form>
-        </div>
-
-        {{-- Liste des segments déjà pris --}}
-        <div class="bg-white p-6 rounded shadow">
-            <h3 class="text-lg font-semibold mb-4">Segments pris en charge</h3>
-
-            @if ($annonce->segments->count())
-                <ul class="space-y-2">
-                    @foreach ($annonce->segments as $segment)
-                        <li class="border rounded p-4">
-                            <strong>{{ $segment->from_city }} → {{ $segment->to_city }}</strong><br>
-                            Par : <span class="text-sm text-gray-700">{{ $segment->livreur->name }}</span><br>
-                            Statut : <span class="text-sm text-gray-600">{{ $segment->status }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            @else
-                <p class="text-gray-600">Aucun segment pris en charge pour le moment.</p>
             @endif
         </div>
 
-    </div>
+        {{-- Carte interactive --}}
+        <x-leaflet-annonce-map :annonce="$annonce" :segments="$segments" />
 
+
+        {{-- Segments pris en charge --}}
+        @if ($annonce->type === 'transport')
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-md font-semibold mb-2">Segments déjà pris en charge</h3>
+
+                @if ($segments->isEmpty())
+                    <p class="text-gray-600">Aucun segment n’a encore été pris en charge.</p>
+                @else
+                    <ul class="space-y-2">
+                        @foreach ($segments as $segment)
+                            <li class="border rounded p-2">
+                                <p class="font-semibold">{{ $segment->from_city }} → {{ $segment->to_city }}</p>
+                                <p class="text-sm text-gray-600">Par : {{ $segment->delivery->name ?? 'Inconnu' }}</p>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        @endif
+
+        {{-- Formulaire pour proposer un segment --}}
+        @if ($annonce->type === 'transport')
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-md font-semibold mb-4">Proposer un segment à prendre en charge</h3>
+
+                @if (session('success'))
+                    <div class="text-green-600 text-sm mb-3">{{ session('success') }}</div>
+                @endif
+
+                @if (session('error'))
+                    <div class="text-red-600 text-sm mb-3">{{ session('error') }}</div>
+                @endif
+
+                <form method="POST" action="{{ route('segments.store', $annonce) }}" class="space-y-4 relative">
+                    @csrf
+
+                    <div class="relative">
+                        <label for="from_city" class="block text-sm font-medium text-gray-700">Ville de départ</label>
+                        <x-text-input id="from_city" name="from_city" autocomplete="off" class="mt-1" required />
+                        <ul id="from_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
+                        <x-input-error :messages="$errors->get('from_city')" class="mt-1" />
+                    </div>
+
+                    <div class="relative">
+                        <label for="to_city" class="block text-sm font-medium text-gray-700">Ville d’arrivée</label>
+                        <x-text-input id="to_city" name="to_city" autocomplete="off" class="mt-1" required />
+                        <ul id="to_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
+                        <x-input-error :messages="$errors->get('to_city')" class="mt-1" />
+                    </div>
+
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                        Valider ce segment
+                    </button>
+                </form>
+            </div>
+        @endif
+    </div>
     <x-autocomplete-script />
 </x-app-layout>

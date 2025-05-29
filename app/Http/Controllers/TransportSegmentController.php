@@ -24,22 +24,30 @@ class TransportSegmentController extends Controller
             'to_city' => 'required|string|max:255',
         ]);
 
-        // Vérification logique optionnelle : validité du segment
         if ($request->from_city === $request->to_city) {
             return back()->with('error', 'La ville de départ et d’arrivée doivent être différentes.');
         }
 
-        // Créer le segment
+        // Récupération des coordonnées avec ta fonction helper
+        [$fromLng, $fromLat] = getCoordinates($request->from_city);
+        [$toLng, $toLat] = getCoordinates($request->to_city);
+
+        // Création du segment
         TransportSegment::create([
             'annonce_id' => $annonce->id,
-            'livreur_id' => auth()->id(),
+            'delivery_id' => auth()->id(), // ← si renommé
             'from_city' => $request->from_city,
             'to_city' => $request->to_city,
+            'from_lat' => $fromLat,
+            'from_lng' => $fromLng,
+            'to_lat' => $toLat,
+            'to_lng' => $toLng,
             'status' => 'pending',
         ]);
 
         return back()->with('success', 'Segment proposé avec succès.');
     }
+
 
     public function show(Annonce $annonce)
     {
@@ -48,4 +56,31 @@ class TransportSegmentController extends Controller
 
         return view('delivery.annonces.show', compact('annonce'));
     }
+
+    public function mesLivraisons()
+    {
+        $segments = \App\Models\TransportSegment::with('annonce')
+            ->where('delivery_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return view('delivery.segments.index', compact('segments'));
+    }
+
+    public function updateStatus(Request $request, TransportSegment $segment)
+    {
+        if ($segment->delivery_id !== auth()->id() and auth()->role() !== 'admin') {
+            abort(403);
+        }
+
+        $request->validate([
+            'status' => 'required|in:pending,in_progress,delivered'
+        ]);
+
+        $segment->update(['status' => $request->status]);
+
+        return back()->with('success', 'Statut mis à jour avec succès.');
+    }
+
+
 }

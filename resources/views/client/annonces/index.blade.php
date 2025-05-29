@@ -32,6 +32,7 @@
                 <div>
                     <label for="preferred_date" class="block text-sm font-medium text-gray-700">Date souhaitée</label>
                     <x-text-input type="date" id="preferred_date" name="preferred_date" class="mt-1" />
+                    <x-input-error :messages="$errors->get('preferred_date')" class="mt-1" />
                 </div>
 
                 <div>
@@ -47,12 +48,15 @@
                     <div class="relative">
                         <label for="from_city" class="block text-sm font-medium text-gray-700">Ville de départ</label>
                         <x-text-input id="from_city" name="from_city" class="mt-1" autocomplete="off" />
+                        <x-input-error :messages="$errors->get('from_city')" class="mt-1" />
                         <ul id="from_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
                     </div>
 
                     <div class="relative">
                         <label for="to_city" class="block text-sm font-medium text-gray-700">Ville d’arrivée</label>
                         <x-text-input id="to_city" name="to_city" class="mt-1" autocomplete="off" />
+                        <x-input-error :messages="$errors->get('to_city')" class="mt-1" />
+
                         <ul id="to_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
                     </div>
                 </div>

@@ -12,6 +12,10 @@ class Annonce extends Model
         'description',
         'from_city',
         'to_city',
+        'from_lat',
+        'from_lng',
+        'to_lat',
+        'to_lng',
         'preferred_date',
         'type',
     ];
@@ -25,5 +29,4 @@ class Annonce extends Model
     {
         return $this->hasMany(TransportSegment::class);
     }
-
 }
