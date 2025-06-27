@@ -8,17 +8,24 @@ class Annonce extends Model
 {
     protected $fillable = [
         'user_id',
-        'title',
-        'description',
+        'type',
         'from_city',
         'to_city',
-        'from_lat',
-        'from_lng',
-        'to_lat',
-        'to_lng',
-        'preferred_date',
-        'type',
+        'date',
+        'time',
+        'description',
+        'from_latitude',
+        'from_longitude',
+        'to_latitude',
+        'to_longitude',
+        'price',
+        'weight',
+        'volume',
+        'photo',
+        'constraints',
+        'status',
     ];
+
 
     public function user()
     {

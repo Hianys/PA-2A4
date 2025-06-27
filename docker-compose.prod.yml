@@ -6,7 +6,7 @@ services:   # Différents services de l'application (Laravel back/front et base 
       target: prod           # Utilise la cible `prod` définie dans le Dockerfile (multistage build)
     container_name: laravel-app-prod      # Nom du conteneur Docker
     env_file:
-      - docker/.env.prod     # Fichier contenant les variables d'environnement spécifiques à la prod
+      - docker/..env.prod     # Fichier contenant les variables d'environnement spécifiques à la prod
     ports:
       - "8080:80"            # Expose le port 80 du conteneur sur le port 8080 de l’hôte
     depends_on:
@@ -19,7 +19,7 @@ services:   # Différents services de l'application (Laravel back/front et base 
     container_name: mysql-ecodeli-prod    # Nom du conteneur MySQL
     restart: always          # Redémarre automatiquement le conteneur s’il crash ou après un reboot
     env_file:
-      - docker/.env.prod     # Variables d’environnement pour initialiser MySQL (user, password, etc.)
+      - docker/..env.prod     # Variables d’environnement pour initialiser MySQL (user, password, etc.)
     volumes:
       - mysql-prod-data:/var/lib/mysql    # Volume Docker pour persister les données MySQL
     networks:

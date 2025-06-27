@@ -12,7 +12,7 @@ services:   # Définition des services nécessaires pour l’environnement de d�
     working_dir: /var/www/html   # Définit le dossier de travail à l’intérieur du conteneur
     command: apache2-foreground   # Lance Apache en mode premier plan (Docker attend que ce process reste actif)
     env_file:
-      - .env               # Utilise les variables d’environnement du fichier `.env` pour Laravel
+      - .env               # Utilise les variables d’environnement du fichier `..env` pour Laravel
     depends_on:
       - db                # Laravel démarre après que MySQL soit prêt
     networks:
