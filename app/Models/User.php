@@ -51,4 +51,28 @@ class User extends Authenticatable
     {
         return $this->hasMany(Annonce::class);
     }
+
+    public function isClient()
+    {
+        return $this->role === 'client';
+    }
+
+    public function isTrader()
+    {
+        return $this->role === 'commercant';
+    }
+
+    public function isDelivery()
+    {
+        return $this->role === 'livreur';
+    }
+
+    public function isProvider()
+    {
+        return $this->role === 'prestataire';
+    }
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
 }

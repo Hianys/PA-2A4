@@ -1,0 +1,34 @@
+# Ignorer les dépendances locales
+node_modules
+vendor
+
+# Ignorer les fichiers sensibles
+.env
+.env.*
+*.key
+*.pem
+
+# Ignorer les artefacts de compilation front
+public/build
+
+# Ignorer les fichiers de configuration docker
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+
+# Ignorer les logs et le cache Laravel
+storage/*.key
+storage/*.log
+storage/framework/*
+storage/logs/*
+storage/oauth-private.key
+storage/oauth-public.key
+
+# Ignorer les fichiers système et IDE
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

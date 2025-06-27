@@ -1,0 +1,54 @@
+services:   # Définition des services nécessaires pour l’environnement de développement
+
+  app:      # Service Laravel (backend PHP avec Apache)
+    build:
+      context: .            # Contexte de build : le dossier courant (racine du projet)
+      target: dev           # Utilise la cible `dev` définie dans le Dockerfile
+    container_name: laravel-app-dev     # Nom du conteneur
+    ports:
+      - "8080:80"           # Expose le port 80 du conteneur sur le port 8080 de l’hôte
+    volumes:
+      - ./:/var/www/html    # ⚠Montage du projet local dans le conteneur (hot reload Laravel + assets)
+    working_dir: /var/www/html   # Définit le dossier de travail à l’intérieur du conteneur
+    command: apache2-foreground   # Lance Apache en mode premier plan (Docker attend que ce process reste actif)
+    env_file:
+      - .env               # Utilise les variables d’environnement du fichier `.env` pour Laravel
+    depends_on:
+      - db                # Laravel démarre après que MySQL soit prêt
+    networks:
+      - ecodeli-net       # Connecté au réseau interne partagé
+
+  vite:     # Service pour le serveur Vite.js (développement frontend)
+    image: node:20         # Utilise une image officielle Node.js
+    container_name: vite-dev
+    working_dir: /app      # Dossier de travail dans le conteneur (point d’entrée du projet Vite)
+    volumes:
+      - ./:/app            # Montage complet du projet pour que Vite accède au code
+    command: sh -c "npm install && npm run dev -- --host"
+    # Installation des dépendances + lancement du serveur Vite en mode accessible depuis l’extérieur
+    ports:
+      - "5173:5173"        # Expose le port de Vite.js (pour accéder au front sur localhost:5173)
+    env_file:
+      - .env              # Partage les variables d’environnement avec le front si nécessaire
+    networks:
+      - ecodeli-net       # Même réseau que l’app pour un bon fonctionnement de la stack
+
+  db:       # Service MySQL (base de données)
+    image: mysql:8.0       # Image officielle MySQL version 8
+    container_name: mysql-ecodeli-dev
+    restart: always        # Redémarre automatiquement le conteneur en cas de crash ou redémarrage machine
+    env_file:
+      - .env              # Contient DB_DATABASE, DB_USERNAME, DB_PASSWORD etc.
+    ports:
+      - "3306:3306"        # Expose le port MySQL pour accès externe (ex : depuis un client SQL)
+    volumes:
+      - mysql-data:/var/lib/mysql   # Stockage persistant des données de MySQL
+    networks:
+      - ecodeli-net       # Connecté au même réseau privé que les autres services
+
+volumes:   # Définition des volumes persistants
+  mysql-data:              # Volume nommé pour stocker les données de MySQL même après arrêt/rebuild
+
+networks:  # Réseau interne Docker entre les conteneurs
+  ecodeli-net:
+    driver: bridge         # Réseau privé Docker par défaut (isole les services des autres conteneurs extérieurs)
