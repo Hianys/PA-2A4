@@ -47,7 +47,9 @@ Route::middleware(['auth'])->group(function () {
 //Gestion des annonces pour les clients
 Route::middleware(['auth'])->group(function () {
     Route::get('/client/annonces', [ClientAnnonceController::class, 'index'])->name('client.annonces.index');
+    Route::get('/client/annonces/create', [ClientAnnonceController::class, 'create'])->name('client.annonces.create');
     Route::get('/client/annonces/{annonce}', [ClientAnnonceController::class, 'show'])->name('client.annonces.show');
+    Route::get('/client/annonces/{annonce}/edit', [ClientAnnonceController::class, 'edit'])->name('client.annonces.edit');
     Route::post('/client/annonces', [ClientAnnonceController::class, 'store'])->name('client.annonces.store');
     Route::put('/client/annonces/{annonce}', [ClientAnnonceController::class, 'update'])->name('client.annonces.update');
     Route::delete('/client/annonces/{annonce}', [ClientAnnonceController::class, 'destroy'])->name('client.annonces.destroy');
