@@ -34,26 +34,41 @@ class AnnonceController extends Controller
             abort(403);
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'type' => 'required|in:transport,service',
             'preferred_date' => 'nullable|date',
             'from_city' => 'nullable|string|max:255',
             'to_city' => 'nullable|string|max:255',
+            'price' => 'nullable|numeric',
+            'weight' => 'nullable|numeric',
+            'volume' => 'nullable|numeric',
+            'constraints' => 'nullable|string',
+            'status' => 'nullable|in:published,taken,completed',
+            'from_latitude' => 'nullable|numeric',
+            'from_longitude' => 'nullable|numeric',
+            'to_latitude' => 'nullable|numeric',
+            'to_longitude' => 'nullable|numeric',
+            'photo' => 'nullable|file|image|max:2048',
         ]);
 
-        Annonce::create([
-            'user_id' => auth()->id(),
-            'title' => $request->title,
-            'description' => $request->description,
-            'type' => $request->type,
-            'preferred_date' => $request->preferred_date,
-            'from_city' => $request->from_city,
-            'to_city' => $request->to_city,
-        ]);
+        $data = $validated;
+        unset($data['photo']);
+        $data['user_id'] = auth()->id();
+        $data['status'] = 'published';
 
-        return redirect()->route('client.annonces.index')->with('success', 'Annonce créée avec succès.');
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('uploads', 'public');
+            $data['photo'] = $path;
+        }else {
+            $data['photo'] = null;
+        }
+
+        Annonce::create($data);
+
+        return redirect()->route('client.annonces.index')
+            ->with('success', 'Annonce créée avec succès.');
     }
 
     public function show(Annonce $annonce)
@@ -65,7 +80,7 @@ class AnnonceController extends Controller
             abort(403);
         }
 
-        $annonce->load('segments.delivery'); // charge les segments + les livreurs
+        $annonce->load('segments.delivery');
         $segments = $annonce->segments;
 
         return view('client.annonces.show', compact('annonce', 'segments'));
@@ -92,21 +107,43 @@ class AnnonceController extends Controller
             abort(403);
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'type' => 'required|in:transport,service',
             'preferred_date' => 'nullable|date',
             'from_city' => 'nullable|string|max:255',
             'to_city' => 'nullable|string|max:255',
+            'price' => 'nullable|numeric',
+            'weight' => 'nullable|numeric',
+            'volume' => 'nullable|numeric',
+            'constraints' => 'nullable|string',
+            'status' => 'nullable|in:published,taken,completed',
+            'from_latitude' => 'nullable|numeric',
+            'from_longitude' => 'nullable|numeric',
+            'to_latitude' => 'nullable|numeric',
+            'to_longitude' => 'nullable|numeric',
+            'photo' => 'nullable|file|image|max:2048',
         ]);
 
-        $annonce->update($request->only([
-            'title', 'description', 'type', 'preferred_date', 'from_city', 'to_city'
-        ]));
+        $data = $validated;
+        $data['user_id'] = auth()->id();
 
-        return redirect()->route('client.annonces.show', $annonce)->with('success', 'Annonce mise à jour.');
+        unset($data['photo']);
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('uploads', 'public');
+            $data['photo'] = $path;
+        } else {
+            $data['photo'] = $annonce->photo; // conserve l'ancienne si pas de nouvelle
+        }
+
+        $annonce->update($data);
+
+        return redirect()->route('client.annonces.show', $annonce)
+            ->with('success', 'Annonce mise à jour avec succès.');
     }
+
 
     public function destroy(Annonce $annonce)
     {
@@ -118,7 +155,8 @@ class AnnonceController extends Controller
         }
 
         $annonce->delete();
-        return redirect()->route('client.annonces.index')->with('success', 'Annonce supprimée.');
+
+        return redirect()->route('client.annonces.index')
+            ->with('success', 'Annonce supprimée.');
     }
 }
-

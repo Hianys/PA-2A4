@@ -8,10 +8,11 @@ class Annonce extends Model
 {
     protected $fillable = [
         'user_id',
+        'title',
         'type',
         'from_city',
         'to_city',
-        'date',
+        'preferred_date',
         'time',
         'description',
         'from_latitude',
