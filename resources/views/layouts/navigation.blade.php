@@ -25,7 +25,7 @@
 
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
-                            Mon profil
+                            @lang('my profile')
                         </x-dropdown-link>
 
                         <!-- Logout -->
@@ -33,7 +33,7 @@
                             @csrf
                             <x-dropdown-link href="{{ route('logout') }}"
                                              onclick="event.preventDefault(); this.closest('form').submit();">
-                                Déconnexion
+                                @lang('logout')
                             </x-dropdown-link>
                         </form>
                     </x-slot>
@@ -72,14 +72,14 @@
 
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
-                    Mon profil
+                    @lang('my profile')
                 </x-responsive-nav-link>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <x-responsive-nav-link href="{{ route('logout') }}"
                                            onclick="event.preventDefault(); this.closest('form').submit();">
-                        Déconnexion
+                        @lang('logout')
                     </x-responsive-nav-link>
                 </form>
             </div>

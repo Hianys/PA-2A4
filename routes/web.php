@@ -8,6 +8,14 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransportSegmentController;
 use Illuminate\Support\Facades\Route;
 
+
+Route::get('/changeLocale/{locale}', function (string $locale) {
+    if (in_array($locale, ['en', 'es', 'fr', 'ar'])) {
+        session()->put('locale', $locale);
+     }
+    return redirect()->back();
+});
+
 //Route de la page d'accueil
 Route::get('/', function () {
     return view('home');

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold">Annonces à prendre en charge</h2>
+        <h2 class="text-xl font-semibold">@lang('Announcements to be supported')</h2>
     </x-slot>
 
     <div class="max-w-5xl mx-auto py-6 space-y-6">
@@ -14,8 +14,8 @@
                         <p class="text-sm text-gray-600 italic">{{ $annonce->description }}</p>
 
                         <div class="text-sm text-gray-700">
-                            <p><strong>Trajet :</strong> {{ $annonce->from_city }} → {{ $annonce->to_city }}</p>
-                            <p><strong>Date :</strong> {{ \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') }}</p>
+                            <p><strong>@lang("path") :</strong> {{ $annonce->from_city }} → {{ $annonce->to_city }}</p>
+                            <p><strong>@lang("date") :</strong> {{ \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') }}</p>
                         </div>
                     </div>
 
@@ -28,7 +28,7 @@
                 </div>
             @endforeach
         @else
-            <p class="text-center text-gray-600">Aucune annonce disponible actuellement.</p>
+            <p class="text-center text-gray-600">@lang("No announcements available at the moment.")</p>
         @endif
 
     </div>
