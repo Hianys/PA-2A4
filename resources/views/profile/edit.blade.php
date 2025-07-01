@@ -3,6 +3,15 @@
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Profil') }}
         </h2>
+        <select name="selectLocale" id="selectLocale">
+                <option @if(app()->getLocale() == 'ar') selected @endif value="ar">ar</option>
+                <option @if(app()->getLocale() == 'fr') selected @endif value="fr">fr</option>
+                <option @if(app()->getLocale() == 'en') selected @endif value="en">en</option>
+                <option @if(app()->getLocale() == 'es') selected @endif value="es">es</option>
+            </select>
+
+                                @lang("welcome")
+
     </x-slot>
 
     <div class="py-12">

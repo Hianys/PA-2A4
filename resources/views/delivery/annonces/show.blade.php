@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold">Détail de l'annonce à livrer</h2>
+        <h2 class="text-xl font-semibold">@lang('Detail of the delivery announcement')</h2>
     </x-slot>
 
     <div class="max-w-4xl mx-auto py-6 space-y-6">
@@ -8,7 +8,7 @@
         {{-- Lien retour --}}
         <div>
             <a href="{{ route('delivery.annonces.index') }}" class="text-indigo-600 hover:underline text-sm">
-                ← Retour à la liste des annonces
+                @lang('Back to the list of announcements')
             </a>
         </div>
 
@@ -19,9 +19,9 @@
 
             @if ($annonce->type === 'transport')
                 <div class="mt-4 text-sm text-gray-700">
-                    <p><strong>De :</strong> {{ $annonce->from_city }}</p>
-                    <p><strong>À :</strong> {{ $annonce->to_city }}</p>
-                    <p><strong>Date souhaitée :</strong> {{ \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') }}</p>
+                    <p><strong>@lang('From'):</strong> {{ $annonce->from_city }}</p>
+                    <p><strong>@lang('To'):</strong> {{ $annonce->to_city }}</p>
+                    <p><strong>@lang('Preferred date'):</strong> {{ \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') }}</p>
                 </div>
             @endif
         </div>
@@ -33,16 +33,16 @@
         {{-- Segments pris en charge --}}
         @if ($annonce->type === 'transport')
             <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-md font-semibold mb-2">Segments déjà pris en charge</h3>
+                <h3 class="text-md font-semibold mb-2">@lang('Segments already supported')</h3>
 
                 @if ($segments->isEmpty())
-                    <p class="text-gray-600">Aucun segment n’a encore été pris en charge.</p>
+                    <p class="text-gray-600">@lang('No segments have been supported yet.')</p>
                 @else
                     <ul class="space-y-2">
                         @foreach ($segments as $segment)
                             <li class="border rounded p-2">
                                 <p class="font-semibold">{{ $segment->from_city }} → {{ $segment->to_city }}</p>
-                                <p class="text-sm text-gray-600">Par : {{ $segment->delivery->name ?? 'Inconnu' }}</p>
+                                <p class="text-sm text-gray-600">@lang('By'): {{ $segment->delivery->name ?? 'Inconnu' }}</p>
                             </li>
                         @endforeach
                     </ul>
@@ -53,7 +53,7 @@
         {{-- Formulaire pour proposer un segment --}}
         @if ($annonce->type === 'transport')
             <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-md font-semibold mb-4">Proposer un segment à prendre en charge</h3>
+                <h3 class="text-md font-semibold mb-4">@lang('Propose a segment to be supported')</h3>
 
                 @if (session('success'))
                     <div class="text-green-600 text-sm mb-3">{{ session('success') }}</div>
@@ -67,21 +67,21 @@
                     @csrf
 
                     <div class="relative">
-                        <label for="from_city" class="block text-sm font-medium text-gray-700">Ville de départ</label>
+                        <label for="from_city" class="block text-sm font-medium text-gray-700">@lang('Departure city')</label>
                         <x-text-input id="from_city" name="from_city" autocomplete="off" class="mt-1" required />
                         <ul id="from_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
                         <x-input-error :messages="$errors->get('from_city')" class="mt-1" />
                     </div>
 
                     <div class="relative">
-                        <label for="to_city" class="block text-sm font-medium text-gray-700">Ville d’arrivée</label>
+                        <label for="to_city" class="block text-sm font-medium text-gray-700">@lang('Arrival city')</label>
                         <x-text-input id="to_city" name="to_city" autocomplete="off" class="mt-1" required />
                         <ul id="to_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
                         <x-input-error :messages="$errors->get('to_city')" class="mt-1" />
                     </div>
 
                     <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                        Valider ce segment
+                        @lang('Validate this segment')
                     </button>
                 </form>
             </div>

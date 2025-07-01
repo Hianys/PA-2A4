@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold">Détail de l'annonce</h2>
+        <h2 class="text-xl font-semibold">@lang("Detail of the announcement")</h2>
     </x-slot>
 
     <div class="max-w-4xl mx-auto py-6 space-y-6">
@@ -8,7 +8,7 @@
         {{-- Lien retour --}}
         <div>
             <a href="{{ route('client.annonces.index') }}" class="text-indigo-600 hover:underline text-sm">
-                ← Retour à la liste des annonces
+                ← @lang("Back to announcements list")
             </a>
         </div>
 
@@ -28,26 +28,9 @@
 
             @if ($annonce->type === 'transport')
                 <div class="mt-4 text-sm text-gray-700">
-                    <p><strong>De :</strong> {{ $annonce->from_city }}</p>
-                    <p><strong>À :</strong> {{ $annonce->to_city }}</p>
-                    <p><strong>Date souhaitée :</strong>
-                        {{ $annonce->preferred_date ? \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') : 'Non précisée' }}
-                    </p>
-                </div>
-            @else
-                <div class="mt-4 text-sm text-gray-700">
-                    <p><strong>Date souhaitée :</strong>
-                        {{ $annonce->preferred_date ? \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') : 'Non précisée' }}
-                    </p>
-                </div>
-            @endif
-
-            @if ($annonce->photo)
-                <div class="mt-4">
-                    <p class="text-sm font-medium text-gray-700 mb-2"><strong>Photo :</strong></p>
-                    <img src="{{ asset('storage/' . $annonce->photo) }}"
-                         alt="Photo de l'annonce"
-                         class="w-full max-w-xs rounded shadow">
+                    <p><strong>@lang("From") :</strong> {{ $annonce->from_city }}</p>
+                    <p><strong>@lang("To") :</strong> {{ $annonce->to_city }}</p>
+                    <p><strong>@lang("Preferred date") :</strong> {{ \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') }}</p>
                 </div>
             @endif
 
@@ -76,10 +59,10 @@
         {{-- Segments pris en charge --}}
         @if ($annonce->type === 'transport')
             <div class="bg-white shadow rounded-lg p-6 mt-6">
-                <h3 class="text-md font-semibold mb-2">Segments pris en charge</h3>
+                <h3 class="text-md font-semibold mb-2">@lang("Supported Segments")</h3>
 
                 @if ($segments->isEmpty())
-                    <p class="text-gray-600">Aucun segment n’a encore été pris en charge.</p>
+                    <p class="text-gray-600">@lang("No segments have been supported yet.")</p>
                 @else
                     <ul class="space-y-2">
                         @foreach ($segments as $segment)
