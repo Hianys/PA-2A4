@@ -1,5 +1,6 @@
 @props(['annonce', 'segments'])
 
+{{-- CSS Leaflet --}}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -18,6 +19,9 @@
         const toLat = {!! json_encode($annonce->to_lat) !!};
         const toLng = {!! json_encode($annonce->to_lng) !!};
 
+        console.log("Coordonnées départ :", fromLat, fromLng);
+        console.log("Coordonnées arrivée :", toLat, toLng);
+
         const map = L.map('map').setView(
             (fromLat && fromLng) ? [fromLat, fromLng] : [46.6, 2.2],
             6
@@ -27,25 +31,42 @@
             attribution: '&copy; OpenStreetMap contributors',
         }).addTo(map);
 
-        if (fromLat && toLat) {
-            const mainRoute = L.polyline([
-                [fromLat, fromLng],
-                [toLat, toLng]
-            ], { color: 'blue' }).addTo(map);
-
-            map.fitBounds(mainRoute.getBounds());
+        if (fromLat && fromLng) {
+            L.marker([fromLat, fromLng])
+                .addTo(map)
+                .bindPopup("Départ : {{ $annonce->from_city }}");
         }
 
-        @foreach ($segments as $segment)
-        @if ($segment->from_lat && $segment->to_lat)
-        L.polyline([
-            [{{ $segment->from_lat }}, {{ $segment->from_lng }}],
-            [{{ $segment->to_lat }}, {{ $segment->to_lng }}]
-        ], {
-            color: 'green',
-            dashArray: '5, 5'
-        }).addTo(map);
-        @endif
-        @endforeach
+        if (toLat && toLng) {
+            L.marker([toLat, toLng])
+                .addTo(map)
+                .bindPopup("Arrivée : {{ $annonce->to_city }}");
+        }
+
+        if (fromLat && fromLng && toLat && toLng) {
+            const url = `/api/ors/route?from_lat=${fromLat}&from_lng=${fromLng}&to_lat=${toLat}&to_lng=${toLng}`;
+            console.log("Appel API ORS via Laravel :", url);
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Réponse ORS :", data);
+                    const coords = data.features[0].geometry.coordinates;
+
+                    const latlngs = coords.map(c => [c[1], c[0]]);
+
+                    L.polyline(latlngs, {
+                        color: 'blue',
+                        weight: 4
+                    }).addTo(map);
+
+                    map.fitBounds(latlngs);
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Impossible de récupérer le trajet routier.");
+                });
+        }
     });
 </script>
+

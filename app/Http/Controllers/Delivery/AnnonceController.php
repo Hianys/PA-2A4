@@ -30,8 +30,11 @@ class AnnonceController extends Controller
             abort(403);
         }
 
-        // On peut afficher même si déjà prise en charge, mais pas modifier
-        return view('delivery.annonces.show', compact('annonce'));
+        $annonce->load('segments.delivery');
+        $segments = $annonce->segments;
+
+        return view('delivery.annonces.show', compact('annonce', 'segments'));
     }
+
 }
 

@@ -87,6 +87,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/livreur/documents', [ProfileController::class, 'documents'])->name('livreur.documents');
     Route::post('/livreur/documents', [ProfileController::class, 'uploadDocuments'])->name('livreur.documents.upload');
 });
+Route::get('/api/ors/route', [\App\Http\Controllers\MapController::class, 'routeBetweenCities']);
 
 
 Route::patch('/admin/users/{id}/validate-documents', [AdminController::class, 'validateDocuments'])->name('admin.validateDocuments');
