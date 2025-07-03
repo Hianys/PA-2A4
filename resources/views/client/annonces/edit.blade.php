@@ -53,12 +53,18 @@
                         <label for="from_city" class="block text-sm font-medium text-gray-700">Ville de départ</label>
                         <x-text-input id="from_city" name="from_city" class="mt-1" value="{{ old('from_city', $annonce->from_city) }}" autocomplete="off" />
                         <x-input-error :messages="$errors->get('from_city')" class="mt-1" />
+                        <ul id="from_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
+                        <input type="hidden" name="from_lat" id="from_lat" value="{{ old('from_lat') }}">
+                        <input type="hidden" name="from_lng" id="from_lng" value="{{ old('from_lng') }}">
                     </div>
 
                     <div>
                         <label for="to_city" class="block text-sm font-medium text-gray-700">Ville d’arrivée</label>
                         <x-text-input id="to_city" name="to_city" class="mt-1" value="{{ old('to_city', $annonce->to_city) }}" autocomplete="off" />
                         <x-input-error :messages="$errors->get('to_city')" class="mt-1" />
+                        <ul id="to_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
+                        <input type="hidden" name="to_lat" id="to_lat" value="{{ old('to_lat') }}">
+                        <input type="hidden" name="to_lng" id="to_lng" value="{{ old('to_lng') }}">
                     </div>
 
                     <div>

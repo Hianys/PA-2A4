@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Client\AnnonceController as ClientAnnonceController;
-use App\Http\Controllers\Trader\AnnonceController as TraderAnnonceController;
 use App\Http\Controllers\Delivery\AnnonceController as DeliveryAnnonceController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Trader\AnnonceController as TraderAnnonceController;
 use App\Http\Controllers\TransportSegmentController;
 use Illuminate\Support\Facades\Route;
 
@@ -53,6 +53,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/client/annonces', [ClientAnnonceController::class, 'store'])->name('client.annonces.store');
     Route::put('/client/annonces/{annonce}', [ClientAnnonceController::class, 'update'])->name('client.annonces.update');
     Route::delete('/client/annonces/{annonce}', [ClientAnnonceController::class, 'destroy'])->name('client.annonces.destroy');
+    Route::post('/segments/{segment}/accept', [TransportSegmentController::class, 'accept'])->name('segments.accept');
+    Route::post('/segments/{segment}/refuse', [TransportSegmentController::class, 'refuse'])->name('segments.refuse');
+
 });
 
 //Prise en charge des annonces de type transport pour les Livreurs
