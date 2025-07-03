@@ -83,6 +83,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::get('/api/ors/route', [\App\Http\Controllers\MapController::class, 'routeBetweenCities']);
 
 
 require __DIR__.'/auth.php';
