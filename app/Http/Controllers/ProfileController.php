@@ -57,4 +57,31 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+
+    /**
+     * Show the document upload form for livreur.
+     */
+    public function documents(): View
+    {
+        return view('profile.documents');
+    }
+
+    /**
+     * Handle document upload for livreur.
+     */
+    public function uploadDocuments(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'identity_document' => 'required|file|mimes:pdf,jpg,png|max:2048',
+            'driver_license' => 'required|file|mimes:pdf,jpg,png|max:2048',
+        ]);
+
+        $user = auth()->user();
+        $user->identity_document = $request->file('identity_document')->store('documents', 'public');
+        $user->driver_license = $request->file('driver_license')->store('documents', 'public');
+        $user->documents_verified = false;
+        $user->save();
+
+        return back()->with('success', 'Documents envoyés. En attente de validation.');
+    }
 }

@@ -13,6 +13,7 @@
                 <th class="px-4 py-4 text-left">Nom</th>
                 <th class="px-1 py-4 text-left">Email</th>
                 <th class="px-6 py-4 text-left">Rôle</th>
+                <th class="px-6 py-4 text-left">Documents</th>
                 <th class="px-6 py-4 text-center">Actions</th>
             </tr>
             </thead>
@@ -23,6 +24,25 @@
                     <td class="px-6 py-4 text-left">{{ $user->name }}</td>
                     <td class="px-6 py-4 text-left">{{ $user->email }}</td>
                     <td class="px-6 py-4 text-left capitalize">{{ $user->role }}</td>
+                    <td class="px-6 py-4 text-left">
+    @if ($user->documents_verified)
+        <span class="text-green-600">✅ Validés</span>
+    @elseif ($user->identity_document && $user->driver_license)
+        <div class="space-y-1">
+            <a href="{{ asset('storage/' . $user->identity_document) }}" target="_blank" class="text-indigo-600 underline block">Pièce d'identité</a>
+            <a href="{{ asset('storage/' . $user->driver_license) }}" target="_blank" class="text-indigo-600 underline block">Permis</a>
+
+            <form action="{{ route('admin.validateDocuments', $user->id) }}" method="POST">
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="text-blue-600 hover:underline mt-2">Valider</button>
+            </form>
+        </div>
+    @else
+        <span class="text-gray-500">Non envoyés</span>
+    @endif
+</td>
+
                     <td class="px-6 py-4 text-center">
                         <div class="space-y-1">
                             @if ($user->role !== 'admin')
@@ -52,8 +72,5 @@
             @endforeach
             </tbody>
         </table>
-
-
-
     </x-admin-content>
 </x-app-layout>

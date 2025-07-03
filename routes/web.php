@@ -46,7 +46,7 @@ Route::middleware(['auth'])->group(function () {
 
 //Gestion des annonces pour les clients
 Route::middleware(['auth'])->group(function () {
-    Route::get('/client/annonces', [ClientAnnonceController::class, 'index'])->name('client.annonces.index');
+    Route::get('/client/annonces', [ClientAnnonceController::class, 'index'])->name('client.annonces.index'); 
     Route::get('/client/annonces/create', [ClientAnnonceController::class, 'create'])->name('client.annonces.create');
     Route::get('/client/annonces/{annonce}', [ClientAnnonceController::class, 'show'])->name('client.annonces.show');
     Route::get('/client/annonces/{annonce}/edit', [ClientAnnonceController::class, 'edit'])->name('client.annonces.edit');
@@ -83,6 +83,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/livreur/documents', [ProfileController::class, 'documents'])->name('livreur.documents');
+    Route::post('/livreur/documents', [ProfileController::class, 'uploadDocuments'])->name('livreur.documents.upload');
+});
 
+
+Route::patch('/admin/users/{id}/validate-documents', [AdminController::class, 'validateDocuments'])->name('admin.validateDocuments');
 
 require __DIR__.'/auth.php';
