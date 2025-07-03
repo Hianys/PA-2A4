@@ -15,6 +15,7 @@ class TransportSegment extends Model
         'from_lng',
         'to_lat',
         'to_lng',
+        'status',
     ];
 
     public function annonce()
