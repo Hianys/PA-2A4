@@ -39,9 +39,23 @@ Route::middleware(['auth'])->group(function () {
 
 //Actions utilisateurs admin
 Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users.index');
+    Route::get('/users/{id}', [AdminController::class, 'showUser'])->name('admin.users.show');
+    Route::put('/users/{id}', [AdminController::class, 'updateUser'])->name('admin.users.update');
+    Route::get('/users/{id}/edit', [AdminController::class, 'editUser'])->name('admin.users.edit');
     Route::patch('/admin/users/{id}/promote', [AdminController::class, 'promote'])->name('admin.promote');
     Route::patch('/admin/users/{id}/demote', [AdminController::class, 'demote'])->name('admin.demote');
     Route::delete('/admin/users/{id}', [AdminController::class, 'destroy'])->name('admin.delete');
+
+
+    Route::get('/admin/annonces', [AdminController::class, 'annoncesIndex'])->name('admin.annonces.index');
+    Route::get('/admin/annonces/{annonce}', [AdminController::class, 'annoncesShow'])->name('admin.annonces.show');
+    Route::get('/admin/annonces/{annonce}/edit', [AdminController::class, 'annoncesEdit'])->name('admin.annonces.edit');
+    Route::patch('/admin/annonces/{annonce}/archive', [AdminController::class, 'annoncesArchive'])->name('admin.annonces.archive');
+    Route::delete('/admin/annonces/{annonce}', [AdminController::class, 'annoncesDelete'])->name('admin.annonces.delete');
+
+
+
 });
 
 //Gestion des annonces pour les clients

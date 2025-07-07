@@ -1,59 +1,27 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold">Tableau de bord administrateur</h2>
+        <h2 class="text-xl font-semibold">Tableau de bord Administrateur</h2>
     </x-slot>
 
-    <x-admin-content>
-        <h2 class="text-2xl font-semibold mb-6">Liste des utilisateurs</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <a href="{{ route('admin.users.index') }}" class="bg-white shadow p-6 rounded hover:bg-gray-50">
+            <h3 class="text-lg font-semibold mb-2">Utilisateurs</h3>
+            <p class="text-gray-600 text-sm">Voir et gérer tous les utilisateurs.</p>
+        </a>
 
-        <table class="w-full table-auto bg-white shadow rounded">
-            <thead class="bg-gray-100 text-sm text-gray-700">
-            <tr>
-                <th class="px-4 py-4 text-left">ID</th>
-                <th class="px-4 py-4 text-left">Nom</th>
-                <th class="px-1 py-4 text-left">Email</th>
-                <th class="px-6 py-4 text-left">Rôle</th>
-                <th class="px-6 py-4 text-center">Actions</th>
-            </tr>
-            </thead>
-            <tbody class="text-sm text-gray-800">
-            @foreach ($users as $user)
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="px-6 py-4 text-left">{{ $user->id }}</td>
-                    <td class="px-6 py-4 text-left">{{ $user->name }}</td>
-                    <td class="px-6 py-4 text-left">{{ $user->email }}</td>
-                    <td class="px-6 py-4 text-left capitalize">{{ $user->role }}</td>
-                    <td class="px-6 py-4 text-center">
-                        <div class="space-y-1">
-                            @if ($user->role !== 'admin')
-                                <form action="{{ route('admin.promote', $user->id) }}" method="POST">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button class="text-green-600 hover:underline">Promouvoir</button>
-                                </form>
-                            @endif
+        <a href="{{ route('admin.annonces.index') }}" class="bg-white shadow p-6 rounded hover:bg-gray-50">
+            <h3 class="text-lg font-semibold mb-2">Annonces</h3>
+            <p class="text-gray-600 text-sm">Consulter et modérer les annonces.</p>
+        </a>
 
-                            @if ($user->role !== 'client')
-                                <form action="{{ route('admin.demote', $user->id) }}" method="POST">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button class="text-yellow-600 hover:underline">Rétrograder</button>
-                                </form>
-                            @endif
+        <a href="#" class="bg-white shadow p-6 rounded hover:bg-gray-50">
+            <h3 class="text-lg font-semibold mb-2">Segments</h3>
+            <p class="text-gray-600 text-sm">Suivre les livraisons et segments.</p>
+        </a>
 
-                            <form action="{{ route('admin.delete', $user->id) }}" method="POST" onsubmit="return confirm('Confirmer la suppression ?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="text-red-600 hover:underline">Supprimer</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
-
-
-
-    </x-admin-content>
+        <a href="#" class="bg-white shadow p-6 rounded hover:bg-gray-50">
+            <h3 class="text-lg font-semibold mb-2">Paiements</h3>
+            <p class="text-gray-600 text-sm">Visualiser les transactions financières.</p>
+        </a>
+    </div>
 </x-app-layout>

@@ -81,8 +81,6 @@ class TransportSegmentController extends Controller
     }
 
 
-
-
     public function show(Annonce $annonce)
     {
         // Chargement des segments liés avec les livreurs
