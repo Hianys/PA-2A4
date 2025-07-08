@@ -19,8 +19,7 @@
                 @if ($annonce->user)
                     <a href="{{ route('admin.users.show', $annonce->user->id) }}"
                        class="text-indigo-600 hover:underline">
-                        {{ $annonce->user->name }} ({{ ucfirst($annonce->user->role) }})
-                    </a>
+                        {{ $annonce->user->name }} </a>({{ ucfirst($annonce->user->role) }})
                 @else
                     N/A
                 @endif
@@ -66,9 +65,10 @@
                     @foreach ($annonce->segments as $segment)
                         <li class="border p-3 rounded flex justify-between">
                             <div>
-                                <p class="font-semibold">
+                                <a href="{{ route('admin.segments.show', $segment->id) }}"
+                                   class="font-semibold text-indigo-600 hover:underline">
                                     {{ $segment->from_city }} → {{ $segment->to_city }}
-                                </p>
+                                </a>
                                 @if ($segment->delivery)
                                     <p class="text-sm text-gray-600">
                                         Par :
@@ -84,6 +84,7 @@
                                 {{ ucfirst($segment->status) }}
                             </span>
                         </li>
+
                     @endforeach
                 </ul>
             </div>

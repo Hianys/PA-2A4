@@ -165,6 +165,44 @@ class AdminController extends Controller
         return view('admin.annonces.edit', compact('annonce'));
     }
 
+    public function annoncesUpdate(Request $request, $id)
+    {
+        $annonce = \App\Models\Annonce::findOrFail($id);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'preferred_date' => 'nullable|date',
+            'status' => 'required|in:publiée,prise en charge,complétée,archivée',
+            'from_city' => 'nullable|string|max:255',
+            'to_city' => 'nullable|string|max:255',
+            'from_latitude' => 'nullable|numeric',
+            'from_longitude' => 'nullable|numeric',
+            'to_latitude' => 'nullable|numeric',
+            'to_longitude' => 'nullable|numeric',
+            'photo' => 'nullable|image|max:2048',
+        ]);
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('uploads', 'public');
+            $validated['photo'] = $path;
+        }
+
+        $validated['from_lat'] = $validated['from_latitude'] ?? null;
+        $validated['from_lng'] = $validated['from_longitude'] ?? null;
+        $validated['to_lat'] = $validated['to_latitude'] ?? null;
+        $validated['to_lng'] = $validated['to_longitude'] ?? null;
+
+        unset($validated['from_latitude'], $validated['from_longitude'], $validated['to_latitude'], $validated['to_longitude']);
+
+        $annonce->update($validated);
+
+        return redirect()->route('admin.annonces.show', $annonce->id)
+            ->with('success', 'Annonce mise à jour avec succès.');
+    }
+
+
+
     public function annoncesArchive($id)
     {
         $annonce = \App\Models\Annonce::findOrFail($id);
@@ -182,5 +220,52 @@ class AdminController extends Controller
         return redirect()->route('admin.annonces.index')
             ->with('success', 'Annonce supprimée.');
     }
+
+    public function segmentsShow($id)
+    {
+        $segment = \App\Models\TransportSegment::with(['delivery', 'annonce.user'])
+            ->findOrFail($id);
+
+        return view('admin.segments.show', compact('segment'));
+    }
+
+    public function segmentsEdit($id)
+    {
+        $segment = \App\Models\TransportSegment::findOrFail($id);
+        return view('admin.segments.edit', compact('segment'));
+    }
+
+    public function segmentsUpdate(Request $request, $id)
+    {
+        $segment = \App\Models\TransportSegment::findOrFail($id);
+
+        $validated = $request->validate([
+            'from_city' => 'required|string|max:255',
+            'to_city' => 'required|string|max:255',
+            'from_lat' => 'nullable|numeric',
+            'from_lng' => 'nullable|numeric',
+            'to_lat' => 'nullable|numeric',
+            'to_lng' => 'nullable|numeric',
+            'status' => 'required|in:en attente,accepté,refusé',
+        ]);
+
+        $segment->update($validated);
+
+        return redirect()->route('admin.segments.show', $segment->id)
+            ->with('success', 'Segment mis à jour avec succès.');
+    }
+
+    public function segmentsDestroy($id)
+    {
+        $segment = \App\Models\TransportSegment::findOrFail($id);
+        $segment->delete();
+
+        return redirect()->route('admin.annonces.show', $segment->annonce_id)
+            ->with('success', 'Segment supprimé.');
+    }
+
+
+
+
 
 }

@@ -51,8 +51,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/annonces', [AdminController::class, 'annoncesIndex'])->name('admin.annonces.index');
     Route::get('/admin/annonces/{annonce}', [AdminController::class, 'annoncesShow'])->name('admin.annonces.show');
     Route::get('/admin/annonces/{annonce}/edit', [AdminController::class, 'annoncesEdit'])->name('admin.annonces.edit');
+    Route::get('/admin/annonces/{annonce}/update', [AdminController::class, 'annoncesUpdate'])->name('admin.annonces.update');
     Route::patch('/admin/annonces/{annonce}/archive', [AdminController::class, 'annoncesArchive'])->name('admin.annonces.archive');
     Route::delete('/admin/annonces/{annonce}', [AdminController::class, 'annoncesDelete'])->name('admin.annonces.delete');
+
+    Route::get('/admin/segments/{segment}', [AdminController::class, 'segmentsShow'])->name('admin.segments.show');
+    Route::get('/admin/segments/{segment}/edit', [AdminController::class, 'segmentsEdit'])->name('admin.segments.edit');
+    Route::put('/admin/segments/{segment}', [AdminController::class, 'segmentsUpdate'])->name('admin.segments.update');
+    Route::delete('/admin/segments/{segment}', [AdminController::class, 'segmentsDestroy'])->name('admin.segments.destroy');
+
 
 
 
