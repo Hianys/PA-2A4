@@ -31,22 +31,24 @@
 
 
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-6 rounded-lg shadow-md mb-6">
+    <h3 class="text-xl font-semibold mb-2">Annonces des Clients</h3>
 
-            <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-6 rounded-lg shadow-md">
-                <h3 class="text-xl font-semibold mb-2">Annonces des CLients</h3>
-                <a href="{{ route('delivery.annonces.index') }}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                    Accéder aux annonces
-                </a>
-            </div>
+    @if (auth()->user()->documents_verified)
+        <a href="{{ route('delivery.annonces.index') }}"
+           class="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+            Accéder aux annonces
+        </a>
+    @else
+        <button class="inline-block bg-gray-300 text-white px-4 py-2 rounded opacity-60 cursor-not-allowed" disabled>
+            Vos documents doivent être validés pour accéder
+        </button>
+    @endif
+</div>
 
-            <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-6 rounded-lg shadow-md">
-                <h3 class="text-xl font-semibold mb-2">Mes livraisons</h3>
-                <a href="{{ route('delivery.segments.index') }}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                    Accéder à mes trajets
-                </a>
-            </div>
+
+
+
 
             <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-6 rounded-lg shadow-md">
                 <h3 class="text-xl font-semibold mb-2">Historique de livraisons</h3>

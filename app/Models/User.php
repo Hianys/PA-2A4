@@ -22,6 +22,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'identity_document',
+        'driver_license',
+        'documents_verified'
     ];
 
     /**
@@ -44,6 +47,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'documents_verified' => 'boolean',
+            'identity_document' => 'string',
+            'driver_license' => 'string',
+            'wallet' => 'decimal:2',
         ];
     }
 
@@ -75,6 +82,8 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    
 
     public function segmentsTaken()
     {
