@@ -75,4 +75,10 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    public function segmentsTaken()
+    {
+        return $this->hasMany(TransportSegment::class, 'delivery_id');
+    }
+
 }

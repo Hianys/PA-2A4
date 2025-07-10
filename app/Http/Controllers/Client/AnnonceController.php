@@ -120,34 +120,6 @@ class AnnonceController extends Controller
 
         $data = $validated;
 
-        // Géocodage départ
-        if (!empty($validated['from_city'])) {
-            $geo = Http::get('https://nominatim.openstreetmap.org/search', [
-                'q' => $validated['from_city'],
-                'format' => 'json',
-                'limit' => 1,
-            ])->json();
-
-            if (!empty($geo[0])) {
-                $data['from_lat'] = $geo[0]['lat'];
-                $data['from_lng'] = $geo[0]['lon'];
-            }
-        }
-
-        // Géocodage arrivée
-        if (!empty($validated['to_city'])) {
-            $geo = Http::get('https://nominatim.openstreetmap.org/search', [
-                'q' => $validated['to_city'],
-                'format' => 'json',
-                'limit' => 1,
-            ])->json();
-
-            if (!empty($geo[0])) {
-                $data['to_lat'] = $geo[0]['lat'];
-                $data['to_lng'] = $geo[0]['lon'];
-            }
-        }
-
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('uploads', 'public');
             $data['photo'] = $path;

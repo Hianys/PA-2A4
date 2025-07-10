@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Client\AnnonceController as ClientAnnonceController;
-use App\Http\Controllers\Trader\AnnonceController as TraderAnnonceController;
 use App\Http\Controllers\Delivery\AnnonceController as DeliveryAnnonceController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Trader\AnnonceController as TraderAnnonceController;
 use App\Http\Controllers\TransportSegmentController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,9 +39,30 @@ Route::middleware(['auth'])->group(function () {
 
 //Actions utilisateurs admin
 Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users.index');
+    Route::get('/users/{id}', [AdminController::class, 'showUser'])->name('admin.users.show');
+    Route::put('/users/{id}', [AdminController::class, 'updateUser'])->name('admin.users.update');
+    Route::get('/users/{id}/edit', [AdminController::class, 'editUser'])->name('admin.users.edit');
     Route::patch('/admin/users/{id}/promote', [AdminController::class, 'promote'])->name('admin.promote');
     Route::patch('/admin/users/{id}/demote', [AdminController::class, 'demote'])->name('admin.demote');
     Route::delete('/admin/users/{id}', [AdminController::class, 'destroy'])->name('admin.delete');
+
+
+    Route::get('/admin/annonces', [AdminController::class, 'annoncesIndex'])->name('admin.annonces.index');
+    Route::get('/admin/annonces/{annonce}', [AdminController::class, 'annoncesShow'])->name('admin.annonces.show');
+    Route::get('/admin/annonces/{annonce}/edit', [AdminController::class, 'annoncesEdit'])->name('admin.annonces.edit');
+    Route::get('/admin/annonces/{annonce}/update', [AdminController::class, 'annoncesUpdate'])->name('admin.annonces.update');
+    Route::patch('/admin/annonces/{annonce}/archive', [AdminController::class, 'annoncesArchive'])->name('admin.annonces.archive');
+    Route::delete('/admin/annonces/{annonce}', [AdminController::class, 'annoncesDelete'])->name('admin.annonces.delete');
+
+    Route::get('/admin/segments/{segment}', [AdminController::class, 'segmentsShow'])->name('admin.segments.show');
+    Route::get('/admin/segments/{segment}/edit', [AdminController::class, 'segmentsEdit'])->name('admin.segments.edit');
+    Route::put('/admin/segments/{segment}', [AdminController::class, 'segmentsUpdate'])->name('admin.segments.update');
+    Route::delete('/admin/segments/{segment}', [AdminController::class, 'segmentsDestroy'])->name('admin.segments.destroy');
+
+
+
+
 });
 
 //Gestion des annonces pour les clients
@@ -53,6 +74,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/client/annonces', [ClientAnnonceController::class, 'store'])->name('client.annonces.store');
     Route::put('/client/annonces/{annonce}', [ClientAnnonceController::class, 'update'])->name('client.annonces.update');
     Route::delete('/client/annonces/{annonce}', [ClientAnnonceController::class, 'destroy'])->name('client.annonces.destroy');
+    Route::post('/segments/{segment}/accept', [TransportSegmentController::class, 'accept'])->name('segments.accept');
+    Route::post('/segments/{segment}/refuse', [TransportSegmentController::class, 'refuse'])->name('segments.refuse');
+
 });
 
 //Prise en charge des annonces de type transport pour les Livreurs

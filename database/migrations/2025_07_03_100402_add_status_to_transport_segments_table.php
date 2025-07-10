@@ -9,16 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('transport_segments', function (Blueprint $table) {
-            $table->enum('status', ['en attente', 'accepté', 'refusé'])
+            $table->enum('status', ['en attente', 'accepte', 'refuse'])
                 ->default('en attente')
-                ->after('to_lng');
+                ->change();
         });
     }
 
     public function down(): void
     {
         Schema::table('transport_segments', function (Blueprint $table) {
-            $table->dropColumn('status');
+            $table->enum('status', ['published', 'taken', 'completed'])
+                ->default('published')
+                ->change();
         });
     }
 };

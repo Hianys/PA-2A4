@@ -74,24 +74,28 @@
         @endif
 
         {{-- Segments pris en charge --}}
-        @if ($annonce->type === 'transport')
-            <div class="bg-white shadow rounded-lg p-6 mt-6">
-                <h3 class="text-md font-semibold mb-2">Segments pris en charge</h3>
+        @if ($segments->where('status', 'en attente')->count())
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-md font-semibold mb-4">Segments proposés à valider</h3>
 
-                @if ($segments->isEmpty())
-                    <p class="text-gray-600">Aucun segment n’a encore été pris en charge.</p>
-                @else
-                    <ul class="space-y-2">
-                        @foreach ($segments as $segment)
-                            <li class="border rounded p-2">
-                                <p class="font-semibold">{{ $segment->from_city }} → {{ $segment->to_city }}</p>
-                                <p class="text-sm text-gray-600">Par : {{ $segment->delivery->name ?? 'Inconnu' }}</p>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
+                @foreach ($segments->where('status', 'en attente') as $segment)
+                    <div class="border rounded p-4 mb-3">
+                        <p>{{ $segment->from_city }} → {{ $segment->to_city }}</p>
+
+                        <form method="POST" action="{{ route('segments.accept', $segment) }}" class="inline-block">
+                            @csrf
+                            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Accepter</button>
+                        </form>
+
+                        <form method="POST" action="{{ route('segments.refuse', $segment) }}" class="inline-block ml-2">
+                            @csrf
+                            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Refuser</button>
+                        </form>
+                    </div>
+                @endforeach
             </div>
         @endif
+
 
     </div>
 

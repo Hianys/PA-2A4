@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Annonce;
 use App\Models\TransportSegment;
+use Illuminate\Http\Request;
 
 class TransportSegmentController extends Controller
 {
@@ -35,17 +35,49 @@ class TransportSegmentController extends Controller
         // Création du segment
         TransportSegment::create([
             'annonce_id' => $annonce->id,
-            'delivery_id' => auth()->id(), // ← si renommé
+            'delivery_id' => auth()->id(),
             'from_city' => $request->from_city,
             'to_city' => $request->to_city,
             'from_lat' => $fromLat,
             'from_lng' => $fromLng,
             'to_lat' => $toLat,
             'to_lng' => $toLng,
-            'status' => 'pending',
+            'status' => 'en attente',
         ]);
 
         return back()->with('success', 'Segment proposé avec succès.');
+    }
+
+    public function accept(TransportSegment $segment)
+    {
+        if (!auth()->user()->isClient()) {
+            abort(403);
+        }
+
+        $segment->update(['status' => 'accepté']);
+
+        $annonce = $segment->annonce;
+
+        // Vérifier si tous les segments sont acceptés
+        if (
+            $annonce->segments()->where('status', 'en attente')->count() === 0 &&
+            $annonce->segments()->where('status', 'accepté')->count() > 0
+        ) {
+            $annonce->update(['status' => 'prise en charge']);
+        }
+
+        return back()->with('success', 'Segment accepté.');
+    }
+
+    public function refuse(TransportSegment $segment)
+    {
+        if (!auth()->user()->isClient()) {
+            abort(403);
+        }
+
+        $segment->update(['status' => 'refusé']);
+
+        return back()->with('success', 'Segment refusé.');
     }
 
 
@@ -74,7 +106,7 @@ class TransportSegmentController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:pending,in_progress,delivered'
+            'status' => 'required|in:en attente,accepte,refuse'
         ]);
 
         $segment->update(['status' => $request->status]);
