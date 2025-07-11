@@ -55,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/annonces/{annonce}/edit', [AdminController::class, 'annoncesEdit'])->name('admin.annonces.edit');
     Route::get('/admin/annonces/{annonce}/update', [AdminController::class, 'annoncesUpdate'])->name('admin.annonces.update');
     Route::patch('/admin/annonces/{annonce}/archive', [AdminController::class, 'annoncesArchive'])->name('admin.annonces.archive');
+    Route::patch('/admin/annonces/{annonce}/restore', [AdminController::class, 'annoncesRestore'])->name('admin.annonces.restore');
     Route::delete('/admin/annonces/{annonce}', [AdminController::class, 'annoncesDelete'])->name('admin.annonces.delete');
 
     Route::get('/admin/segments/{segment}', [AdminController::class, 'segmentsShow'])->name('admin.segments.show');
@@ -69,7 +70,7 @@ Route::middleware(['auth'])->group(function () {
 
 //Gestion des annonces pour les clients
 Route::middleware(['auth'])->group(function () {
-    Route::get('/client/annonces', [ClientAnnonceController::class, 'index'])->name('client.annonces.index'); 
+    Route::get('/client/annonces', [ClientAnnonceController::class, 'index'])->name('client.annonces.index');
     Route::get('/client/annonces/create', [ClientAnnonceController::class, 'create'])->name('client.annonces.create');
     Route::get('/client/annonces/{annonce}', [ClientAnnonceController::class, 'show'])->name('client.annonces.show');
     Route::get('/client/annonces/{annonce}/edit', [ClientAnnonceController::class, 'edit'])->name('client.annonces.edit');

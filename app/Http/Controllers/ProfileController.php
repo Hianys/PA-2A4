@@ -69,35 +69,36 @@ class ProfileController extends Controller
     /**
      * Handle document upload for livreur.
      */
-public function uploadDocuments(Request $request): RedirectResponse
-{
-    $request->validate([
-        'identity_document' => 'required|file|mimes:pdf,jpg,png|max:2048',
-        'driver_license' => 'required|file|mimes:pdf,jpg,png|max:2048',
-    ]);
+    public function uploadDocuments(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'identity_document' => 'required|file|mimes:pdf,jpg,png|max:2048',
+            'driver_license' => 'required|file|mimes:pdf,jpg,png|max:2048',
+        ]);
 
-    $user = Auth::user();
+        $user = Auth::user();
 
-    // Stockage des fichiers dans le disque "public"
-    $path1 = $request->file('identity_document')->store('documents', 'public');
-    $path2 = $request->file('driver_license')->store('documents', 'public');
+        // Stockage des fichiers dans le disque "public"
+        $path1 = $request->file('identity_document')->store('documents', 'public');
+        $path2 = $request->file('driver_license')->store('documents', 'public');
 
-    // Affectation dans l'objet utilisateur
-    $user->identity_document = $path1;
-    $user->driver_license = $path2;
-    $user->documents_verified = false;
+        // Affectation dans l'objet utilisateur
+        $user->identity_document = $path1;
+        $user->driver_license = $path2;
+        $user->documents_verified = false;
 
-    // Sauvegarde en base
-    $user->save();
+        // Sauvegarde en base
+        $user->save();
 
-    // DEBUG : affiche les chemins enregistrés
-    dd([
-        'stored_identity_path' => $path1,
-        'stored_license_path' => $path2,
-        'user_saved' => $user->identity_document && $user->driver_license,
-    ]);
+        // DEBUG : affiche les chemins enregistrés
+        /*dd([
+            'stored_identity_path' => $path1,
+            'stored_license_path' => $path2,
+            'user_saved' => $user->identity_document && $user->driver_license,
+        ]);*/
 
-    // return back()->with('success', 'Documents envoyés. En attente de validation.');
-}
+        // return back()->with('success', 'Documents envoyés. En attente de validation.');
+        return Redirect::route('delivery.dashboard')->with('status', 'profile-updated');
+    }
 
 }

@@ -64,15 +64,13 @@
                     @foreach ($annonces as $annonce)
                         <li class="border p-3 rounded flex justify-between">
                             <div>
+                                <a href="{{ route('admin.annonces.show', $annonce->id) }}" class="text-indigo-600 hover:underline text-sm">
                                 <p class="font-semibold">{{ $annonce->title }}</p>
+                                </a>
                                 <p class="text-sm text-gray-600">
                                     Type : {{ $annonce->type }} | Statut : {{ $annonce->status }}
                                 </p>
                             </div>
-                            <a href="{{ route('client.annonces.show', $annonce->id) }}"
-                               class="text-indigo-600 hover:underline text-sm">
-                                Voir
-                            </a>
                         </li>
                     @endforeach
                 </ul>

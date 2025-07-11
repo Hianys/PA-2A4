@@ -29,8 +29,6 @@
     </div>
 @endif
 
-
-
     <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-6 rounded-lg shadow-md mb-6">
     <h3 class="text-xl font-semibold mb-2">Annonces des Clients</h3>
 
@@ -45,11 +43,6 @@
         </button>
     @endif
 </div>
-
-
-
-
-
             <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-6 rounded-lg shadow-md">
                 <h3 class="text-xl font-semibold mb-2">Historique de livraisons</h3>
                 <p class="text-gray-600 dark:text-gray-300">Votre historique de livraison s'affichera ici.</p>

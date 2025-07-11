@@ -214,7 +214,7 @@ class AdminController extends Controller
 
     public function annoncesRestore($id)
     {
-        $annonce = Annonce::findOrFail($id);
+        $annonce = \App\Models\Annonce::findOrFail($id);
         $annonce->status = 'publiée';
         $annonce->save();
 
