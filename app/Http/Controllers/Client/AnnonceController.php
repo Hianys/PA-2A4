@@ -15,7 +15,12 @@ class AnnonceController extends Controller
             abort(403);
         }
 
-        $annonces = auth()->user()->annonces()->latest()->get();
+        $annonces = auth()->user()
+            ->annonces()
+            ->where('status', '!=', 'archivée')
+            ->latest()
+            ->get();
+
 
         return view('client.annonces.index', compact('annonces'));
     }
@@ -75,6 +80,10 @@ class AnnonceController extends Controller
             (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
         ) {
             abort(403);
+        }
+
+        if ($annonce->status === 'archivée') {
+            abort(404, 'Cette annonce est archivée.');
         }
 
         $annonce->load('segments.delivery');

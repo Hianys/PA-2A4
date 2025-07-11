@@ -18,6 +18,7 @@ class AnnonceController extends Controller
             ->whereDoesntHave('segments', function ($query) {
                 // Tu peux adapter cette logique selon la façon dont tu gères la prise en charge
             })
+            ->where('status', '!=', 'archivée')
             ->latest()
             ->get();
 
@@ -30,6 +31,9 @@ class AnnonceController extends Controller
             abort(403);
         }
 
+        if ($annonce->status === 'archivée') {
+            abort(404, 'Cette annonce est archivée.');
+        }
         $annonce->load('segments.delivery');
         $segments = $annonce->segments;
 
