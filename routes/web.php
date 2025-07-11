@@ -46,6 +46,8 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/admin/users/{id}/promote', [AdminController::class, 'promote'])->name('admin.promote');
     Route::patch('/admin/users/{id}/demote', [AdminController::class, 'demote'])->name('admin.demote');
     Route::delete('/admin/users/{id}', [AdminController::class, 'destroy'])->name('admin.delete');
+    Route::get('/livreur/documents', [ProfileController::class, 'documents'])->name('livreur.documents');
+    Route::post('/livreur/documents', [ProfileController::class, 'uploadDocuments'])->name('livreur.documents.upload');
 
 
     Route::get('/admin/annonces', [AdminController::class, 'annoncesIndex'])->name('admin.annonces.index');
@@ -67,7 +69,7 @@ Route::middleware(['auth'])->group(function () {
 
 //Gestion des annonces pour les clients
 Route::middleware(['auth'])->group(function () {
-    Route::get('/client/annonces', [ClientAnnonceController::class, 'index'])->name('client.annonces.index');
+    Route::get('/client/annonces', [ClientAnnonceController::class, 'index'])->name('client.annonces.index'); 
     Route::get('/client/annonces/create', [ClientAnnonceController::class, 'create'])->name('client.annonces.create');
     Route::get('/client/annonces/{annonce}', [ClientAnnonceController::class, 'show'])->name('client.annonces.show');
     Route::get('/client/annonces/{annonce}/edit', [ClientAnnonceController::class, 'edit'])->name('client.annonces.edit');
@@ -108,6 +110,32 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/api/ors/route', [\App\Http\Controllers\MapController::class, 'routeBetweenCities']);
+
+
+Route::patch('/admin/users/{id}/validate-documents', [AdminController::class, 'validateDocuments'])->name('admin.validateDocuments');
+
+// Route pour afficher les documents depuis le stockage
+Route::get('/document/{filename}', function ($filename) {
+    $path = storage_path('app/public/documents/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $file = file_get_contents($path);
+    $type = mime_content_type($path);
+
+    return response($file, 200)->header('Content-Type', $type);
+})->middleware('auth')->name('documents.show');
+
+
+use App\Http\Controllers\WalletController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
+    Route::post('/wallet/checkout', [WalletController::class, 'checkout'])->name('wallet.checkout');
+    Route::get('/wallet/success', [WalletController::class, 'success'])->name('wallet.success');
+});
 
 
 require __DIR__.'/auth.php';

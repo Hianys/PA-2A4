@@ -278,4 +278,20 @@ class AdminController extends Controller
 
 
 
+ public function validateDocuments($id)
+{
+    if (Auth::user()->role !== 'admin') {
+        abort(403, 'Accès interdit');
+    }
+
+    $user = User::findOrFail($id);
+    $user->documents_verified = true;
+    $user->save();
+
+    return redirect()->route('admin.dashboard')->with('success', 'Documents validés.');
+}
+
+
+
+
 }
