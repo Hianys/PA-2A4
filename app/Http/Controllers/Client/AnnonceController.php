@@ -8,13 +8,17 @@ use Illuminate\Http\Request;
 
 class AnnonceController extends Controller
 {
-    public function index()
+   public function index()
     {
-        if (!(auth()->user()->isClient() || auth()->user()->isAdmin())) {
+        if (!auth()->user()->isClient() && !auth()->user()->isAdmin()) {
             abort(403);
         }
 
-        $annonces = auth()->user()->annonces()->latest()->get();
+        // Récupère toutes les annonces créées par ce client avec leur prestataire
+        $annonces = Annonce::with('provider')
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->get();
 
         return view('client.annonces.index', compact('annonces'));
     }
@@ -158,5 +162,21 @@ class AnnonceController extends Controller
 
         return redirect()->route('client.annonces.index')
             ->with('success', 'Annonce supprimée.');
+    }
+
+    public function markCompleted(Annonce $annonce)
+    {
+        if ($annonce->user_id !== auth()->id()) {
+            abort(403); // Sécurité : le client ne peut modifier que ses annonces
+        }
+
+        if ($annonce->status !== 'taken') {
+            return redirect()->back()->with('error', "Cette annonce n'a pas encore été acceptée.");
+        }
+
+        $annonce->status = 'completed';
+        $annonce->save();
+
+        return redirect()->back()->with('success', 'Annonce marquée comme complétée.');
     }
 }

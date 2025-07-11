@@ -37,4 +37,9 @@ class Annonce extends Model
     {
         return $this->hasMany(TransportSegment::class);
     }
+
+    public function provider()
+    {
+        return $this->belongsTo(User::class, 'provider_id');
+    }
 }

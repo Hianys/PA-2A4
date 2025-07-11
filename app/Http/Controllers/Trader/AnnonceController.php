@@ -3,66 +3,96 @@
 namespace App\Http\Controllers\Trader;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Annonce;
-
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AnnonceController extends Controller
 {
-    public function index()
+    // Dashboard commerçant
+    public function dashboard()
     {
-        if (!auth()->user()->isTrader() && !auth()->user()->isAdmin()) {
+        $user = Auth::user();
+        if (!$user->isTrader() && !$user->isAdmin()) {
             abort(403);
         }
 
-        $annonces = auth()->user()->annonces()->latest()->get();
+        // Toutes les annonces de transport postées par CE commerçant
+        $annonces = Annonce::where('user_id', $user->id)
+            ->where('type', 'transport')
+            ->latest()
+            ->get();
+
+        return view('dashboards.trader', compact('annonces'));
+    }
+
+    // Liste des annonces du commerçant
+    public function index()
+    {
+        $user = Auth::user();
+        if (!$user->isTrader() && !$user->isAdmin()) {
+            abort(403);
+        }
+
+        $annonces = Annonce::where('user_id', $user->id)
+            ->where('type', 'transport')
+            ->latest()
+            ->get();
+
         return view('trader.annonces.index', compact('annonces'));
     }
 
+    // Formulaire de création
     public function create()
     {
-        if (!auth()->user()->isTrader() && !auth()->user()->isAdmin()) {
+        $user = Auth::user();
+        if (!$user->isTrader() && !$user->isAdmin()) {
             abort(403);
         }
 
-        return view('trader.annonces.create');
+        // On passe l'adresse préremplie
+        $adresse = $user->adresse;
+
+        return view('trader.annonces.create', compact('adresse'));
     }
 
+    // Sauvegarde annonce
     public function store(Request $request)
     {
-        if (!auth()->user()->isTrader() && !auth()->user()->isAdmin()) {
+        $user = Auth::user();
+        if (!$user->isTrader() && !$user->isAdmin()) {
             abort(403);
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'required|in:transport,service',
-            'preferred_date' => 'nullable|date',
-            'from_city' => 'nullable|string|max:255',
-            'to_city' => 'nullable|string|max:255',
+            'preferred_date' => 'required|date',
+            'price' => 'nullable|numeric',
+            'constraints' => 'nullable|string',
+            'photo' => 'nullable|image',
+            'to_city' => 'required|string|max:255', // Adresse de livraison
         ]);
 
-        Annonce::create([
-            'user_id' => auth()->id(),
-            'title' => $request->title,
-            'description' => $request->description,
-            'type' => $request->type,
-            'preferred_date' => $request->preferred_date,
-            'from_city' => $request->from_city,
-            'to_city' => $request->to_city,
-        ]);
+        $annonce = new Annonce($validated);
+        $annonce->user_id = $user->id;
+        $annonce->type = 'transport';
+        $annonce->status = 'published';
+        $annonce->from_city = $user->adresse; // adresse du commerçant
+
+        if ($request->hasFile('photo')) {
+            $annonce->photo = $request->file('photo')->store('annonces', 'public');
+        }
+
+        $annonce->save();
 
         return redirect()->route('commercant.annonces.index')->with('success', 'Annonce créée avec succès.');
     }
 
     public function show(Annonce $annonce)
     {
-        if (
-            !auth()->user()->isTrader() && !auth()->user()->isAdmin()
-            || (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
+        $user = Auth::user();
+        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
@@ -71,10 +101,8 @@ class AnnonceController extends Controller
 
     public function edit(Annonce $annonce)
     {
-        if (
-            !auth()->user()->isTrader() && !auth()->user()->isAdmin()
-            || (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
+        $user = Auth::user();
+        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
@@ -83,39 +111,87 @@ class AnnonceController extends Controller
 
     public function update(Request $request, Annonce $annonce)
     {
-        if (
-            !auth()->user()->isTrader() && !auth()->user()->isAdmin()
-            || (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
+        $user = Auth::user();
+        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'required|in:transport,service',
-            'preferred_date' => 'nullable|date',
-            'from_city' => 'nullable|string|max:255',
-            'to_city' => 'nullable|string|max:255',
+            'preferred_date' => 'required|date',
+            'price' => 'nullable|numeric',
+            'constraints' => 'nullable|string',
+            'to_city' => 'required|string|max:255',
         ]);
 
-        $annonce->update($request->only([
-            'title', 'description', 'type', 'preferred_date', 'from_city', 'to_city'
-        ]));
+        $annonce->update($validated);
 
-        return redirect()->route('commercant.annonces.show', $annonce)->with('success', 'Annonce mise à jour.');
+        return redirect()->route('commercant.annonces.index')->with('success', 'Annonce mise à jour avec succès.');
     }
 
     public function destroy(Annonce $annonce)
     {
-        if (
-            !auth()->user()->isTrader() && !auth()->user()->isAdmin()
-            || (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
+        $user = Auth::user();
+        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
         $annonce->delete();
+
         return redirect()->route('commercant.annonces.index')->with('success', 'Annonce supprimée.');
     }
-}
+
+    public function markCompleted(Annonce $annonce)
+    {
+        $user = Auth::user();
+        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
+            abort(403);
+        }
+
+        if ($annonce->status !== 'taken') {
+            return redirect()->back()->with('error', 'La mission n\'est pas en cours.');
+        }
+
+        $annonce->status = 'completed';
+        $annonce->save();
+
+        return redirect()->route('commercant.annonces.index')->with('success', 'Mission marquée comme complétée.');
+    }
+
+    // Gestion du profil commerçant (enseigne, adresse, document)
+    public function editProfile()
+    {
+        $user = Auth::user();
+        if (!$user->isTrader() && !$user->isAdmin()) {
+            abort(403);
+        }
+        return view('trader.profile', compact('user'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user->isTrader() && !$user->isAdmin()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'enseigne' => 'required|string|max:255',
+            'adresse' => 'required|string|max:255',
+            'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
+        ]);
+
+        if ($request->hasFile('document')) {
+            $filePath = $request->file('document')->store('commercant_docs', 'public');
+            $user->document_path = $filePath;
+        }
+
+        $user->enseigne = $validated['enseigne'];
+        $user->adresse = $validated['adresse'];
+        $user->save();
+
+        return back()->with('success', 'Profil commerçant mis à jour !');
+    }
+
+}   

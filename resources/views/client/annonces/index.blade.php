@@ -13,6 +13,18 @@
         </div>
 
         {{-- Formulaire --}}
+        @if (session('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
+                {{ session('error') }}
+            </div>
+        @endif
+        
         <div class="bg-white shadow rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-4">@lang("New Announcement")</h3>
 
@@ -91,7 +103,24 @@
                                         <div><strong>Poids :</strong> {{ $annonce->weight }} kg</div>
                                         <div><strong>Volume :</strong> {{ $annonce->volume }} m³</div>
                                         <div><strong>Contraintes :</strong> {{ $annonce->constraints }}</div>
-                                        <div><strong>Statut :</strong> {{ $annonce->status }}</div>
+                                        <div><strong>Statut :</strong>
+                                            @if ($annonce->status === 'published')                                          
+                                                <span class="text-yellow-600">En attente</span>
+                                            @elseif ($annonce->status === 'taken')
+                                                <span class="text-blue-600">Acceptée par {{ $annonce->provider->name ?? 'prestataire inconnu' }}</span>
+                                            @elseif ($annonce->status === 'completed')
+                                                <span class="text-green-600">Complétée</span>
+                                            @endif
+                                        </div>
+                                        @if ($annonce->status === 'taken')
+                                            <form action="{{ route('client.annonces.complete', $annonce) }}" method="POST" class="mt-2">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+                                                    Confirmer que la mission est terminée
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="text-sm text-right text-gray-500">

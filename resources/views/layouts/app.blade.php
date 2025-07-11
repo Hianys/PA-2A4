@@ -9,16 +9,27 @@
 
         <link rel="icon" href="{{ asset('favicon.ico') }}">
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-        <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-        <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+        <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet" />
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+    <!-- Vite -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.js"></script>
+
+    {{-- Stack for additional styles --}}
+    @stack('styles')
+</head>
     <body class="bg-white text-gray-800 font-sans antialiased">
         
 
@@ -46,5 +57,6 @@
             window.location.href = "/changeLocale/"+locale;
         })
     </script>
+        @stack('scripts')   
     </body>
 </html>

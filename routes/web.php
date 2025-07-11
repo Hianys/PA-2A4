@@ -4,9 +4,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Client\AnnonceController as ClientAnnonceController;
 use App\Http\Controllers\Trader\AnnonceController as TraderAnnonceController;
 use App\Http\Controllers\Delivery\AnnonceController as DeliveryAnnonceController;
+use App\Http\Controllers\Provider\AnnonceController as ProviderAnnonceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransportSegmentController;
 use Illuminate\Support\Facades\Route;
+
 
 
 Route::get('/changeLocale/{locale}', function (string $locale) {
@@ -32,17 +34,14 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboards.delivery');
     })->name('delivery.dashboard');
 
-    Route::get('/commercant/dashboard', function () {
-        return view('dashboards.trader');
-    })->name('trader.dashboard');
+    Route::get('/commercant/dashboard', [TraderAnnonceController::class, 'dashboard'])
+        ->name('trader.dashboard');
 
-    Route::get('/prestataire/dashboard', function () {
-        return view('dashboards.provider');
-    })->name('provider.dashboard');
+    Route::get('/prestataire/dashboard', [ProviderAnnonceController::class, 'dashboard'])
+        ->name('provider.dashboard');
 
     Route::get('/admin/dashboard/', [AdminController::class, 'index'])
         ->name('admin.dashboard');
-
 });
 
 //Actions utilisateurs admin
@@ -61,6 +60,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/client/annonces', [ClientAnnonceController::class, 'store'])->name('client.annonces.store');
     Route::put('/client/annonces/{annonce}', [ClientAnnonceController::class, 'update'])->name('client.annonces.update');
     Route::delete('/client/annonces/{annonce}', [ClientAnnonceController::class, 'destroy'])->name('client.annonces.destroy');
+    Route::patch('/client/annonces/{annonce}/complete', [ClientAnnonceController::class, 'markCompleted'])->name('client.annonces.complete');
+
 });
 
 //Prise en charge des annonces de type transport pour les Livreurs
@@ -73,8 +74,9 @@ Route::middleware('auth')->group(function () {
 
 });
 
-//Gestion des annonces pour les commerçants
+// Routes commerçant (annonces + profil)
 Route::middleware('auth')->group(function () {
+    // Annonces
     Route::get('commercant/annonces', [TraderAnnonceController::class, 'index'])->name('commercant.annonces.index');
     Route::get('commercant/annonces/create', [TraderAnnonceController::class, 'create'])->name('commercant.annonces.create');
     Route::post('commercant/annonces', [TraderAnnonceController::class, 'store'])->name('commercant.annonces.store');
@@ -82,6 +84,12 @@ Route::middleware('auth')->group(function () {
     Route::get('commercant/annonces/{annonce}/edit', [TraderAnnonceController::class, 'edit'])->name('commercant.annonces.edit');
     Route::put('commercant/annonces/{annonce}', [TraderAnnonceController::class, 'update'])->name('commercant.annonces.update');
     Route::delete('commercant/annonces/{annonce}', [TraderAnnonceController::class, 'destroy'])->name('commercant.annonces.destroy');
+    Route::patch('commercant/annonces/{annonce}/complete', [TraderAnnonceController::class, 'markCompleted'])->name('commercant.annonces.complete');
+    Route::get('/commercant/dashboard', [TraderAnnonceController::class, 'dashboard'])->name('trader.dashboard');
+
+    // Profil commerçant
+    Route::get('/commercant/profil', [TraderAnnonceController::class, 'editProfile'])->name('commercant.profile.edit');
+    Route::post('/commercant/profil', [TraderAnnonceController::class, 'updateProfile'])->name('commercant.profile.update');
 });
 
 //Actions dans le profil de l'utilisateur
@@ -91,6 +99,14 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+//Gestion des annonces pour les prestataireuhs
+Route::middleware(['auth'])->group(function () {
+    Route::get('/prestataire/annonces', [ProviderAnnonceController::class, 'index'])->name('provider.annonces.index');
+    Route::get('/prestataire/annonces/{annonce}', [ProviderAnnonceController::class, 'show'])->name('provider.annonces.show');
+    Route::post('/prestataire/annonces/{annonce}/accept', [ProviderAnnonceController::class, 'accept'])->name('provider.annonces.accept');
+    Route::patch('/prestataire/annonces/{annonce}/complete', [ProviderAnnonceController::class, 'markCompleted'])->name('provider.annonces.complete');
+    Route::get('/prestataire/missions', [ProviderAnnonceController::class, 'missions'])->name('provider.annonces.missions');
+});
 
 
 require __DIR__.'/auth.php';

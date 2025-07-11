@@ -10,24 +10,18 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::create('annonces', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('title');
-            $table->text('description')->nullable();
-            $table->string('from_city');
-            $table->string('to_city');
-            $table->date('preferred_date');
-            $table->timestamps();
-        });
-    }
+{
+    Schema::table('annonces', function (Blueprint $table) {
+        $table->string('status')->default('published');
+        $table->unsignedBigInteger('provider_id')->nullable()->after('user_id');
+    });
+}
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('annonces');
-    }
+public function down(): void
+{
+    Schema::table('annonces', function (Blueprint $table) {
+        $table->dropColumn('status');
+        $table->dropColumn('provider_id');
+    });
+}
 };
