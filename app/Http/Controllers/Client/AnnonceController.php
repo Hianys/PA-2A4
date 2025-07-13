@@ -15,7 +15,12 @@ class AnnonceController extends Controller
             abort(403);
         }
 
-        $annonces = auth()->user()->annonces()->latest()->get();
+        $annonces = auth()->user()
+            ->annonces()
+            ->where('status', '!=', 'archivée')
+            ->latest()
+            ->get();
+
 
         return view('client.annonces.index', compact('annonces'));
     }
