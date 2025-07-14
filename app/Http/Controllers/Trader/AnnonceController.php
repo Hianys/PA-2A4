@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Trader;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Annonce;
-use Illuminate\Http\Request;
+use App\Http\Requests\TraderProfileUpdateRequest;
 use Illuminate\Support\Facades\Auth;
 
 class AnnonceController extends Controller
@@ -70,7 +71,7 @@ class AnnonceController extends Controller
             'preferred_date' => 'required|date',
             'price' => 'nullable|numeric',
             'constraints' => 'nullable|string',
-            'photo' => 'nullable|image',
+            'kbis' => 'nullable|image',
             'to_city' => 'required|string|max:255', // Adresse de livraison
         ]);
 
@@ -80,8 +81,8 @@ class AnnonceController extends Controller
         $annonce->status = 'published';
         $annonce->from_city = $user->adresse; // adresse du commerçant
 
-        if ($request->hasFile('photo')) {
-            $annonce->photo = $request->file('photo')->store('annonces', 'public');
+        if ($request->hasFile('kbis')) {
+            $annonce->kbis = $request->file('kbis')->store('annonces', 'public');
         }
 
         $annonce->save();
@@ -169,29 +170,39 @@ class AnnonceController extends Controller
         return view('trader.profile', compact('user'));
     }
 
-    public function updateProfile(Request $request)
-    {
-        $user = Auth::user();
-        if (!$user->isTrader() && !$user->isAdmin()) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'enseigne' => 'required|string|max:255',
-            'adresse' => 'required|string|max:255',
-            'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
-        ]);
-
-        if ($request->hasFile('document')) {
-            $filePath = $request->file('document')->store('commercant_docs', 'public');
-            $user->document_path = $filePath;
-        }
-
-        $user->enseigne = $validated['enseigne'];
-        $user->adresse = $validated['adresse'];
-        $user->save();
-
-        return back()->with('success', 'Profil commerçant mis à jour !');
+   public function updateProfile(\App\Http\Requests\TraderProfileUpdateRequest $request)
+{
+    $user = Auth::user();
+    if (!$user->isTrader() && !$user->isAdmin()) {
+        abort(403);
     }
 
-}   
+    $validated = $request->validated();
+
+    if ($request->hasFile('kbis')) {
+    // Supprimer l'ancien fichier s'il existe
+    if ($user->kbis_path && \Storage::disk('public')->exists($user->kbis_path)) {
+        \Storage::disk('public')->delete($user->kbis_path);
+    }
+
+    // Stocker le nouveau fichier dans storage/app/public/commercant_docs
+    $filePath = $request->file('kbis')->store('commercant_docs', 'public');
+
+    // Enregistrer le chemin relatif dans la base de données
+    $user->kbis_path = $filePath;
+}
+
+    if (isset($validated['enseigne'])) {
+        $user->enseigne = $validated['enseigne'];
+    }
+    if (isset($validated['adresse'])) {
+        $user->adresse = $validated['adresse'];
+    }
+
+    \Log::info('Avant save', ['kbis_path' => $user->kbis_path, 'id' => $user->id]);
+    $user->save();
+    \Log::info('Après save', ['kbis_path' => $user->fresh()->kbis_path, 'id' => $user->id]);
+
+    return redirect()->route('commercant.profile.edit')->with('success', 'Profil commerçant mis à jour !');
+}
+}

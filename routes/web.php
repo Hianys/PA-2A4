@@ -8,6 +8,8 @@ use App\Http\Controllers\Provider\AnnonceController as ProviderAnnonceController
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransportSegmentController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 
 
@@ -108,5 +110,32 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/prestataire/missions', [ProviderAnnonceController::class, 'missions'])->name('provider.annonces.missions');
 });
 
+Route::get('/test-storage', function () {
+    return view('test');
+});
+
+Route::get('/image-test', function () {
+    return view('storage-test');
+});
+
+Route::get('/upload', function () {
+    return view('upload');
+})->name('file.upload.form');
+
+Route::post('/upload', function (Request $request) {
+    if ($request->hasFile('fichier')) {
+        $file = $request->file('fichier');
+
+        if (!$file->isValid()) {
+            return back()->with('error', 'Le fichier est invalide.');
+        }
+
+        $path = $file->store('uploads', 'public'); // => storage/app/public/uploads/...
+
+        return redirect()->route('file.upload.form')->with('success', 'Fichier uploadé dans : ' . $path);
+    }
+
+    return back()->with('error', 'Aucun fichier sélectionné.');
+})->name('file.upload');
 
 require __DIR__.'/auth.php';

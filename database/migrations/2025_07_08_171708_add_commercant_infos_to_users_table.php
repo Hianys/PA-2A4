@@ -14,6 +14,7 @@ return new class extends Migration
     Schema::table('users', function (Blueprint $table) {
         $table->string('enseigne')->nullable();
         $table->string('adresse')->nullable();
+        $table->string('kbis_path')->nullable();
     });
 }
 
@@ -22,6 +23,7 @@ public function down()
     Schema::table('users', function (Blueprint $table) {
         $table->dropColumn('enseigne');
         $table->dropColumn('adresse');
+        $table->dropColumn('kbis_path');
     });
 }
 };

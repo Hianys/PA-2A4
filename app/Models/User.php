@@ -23,7 +23,8 @@ class User extends Authenticatable
         'password',
         'role',
         'enseigne', 
-        'adresse',  
+        'adresse', 
+        'kbis_path', 
     ];
 
     /**

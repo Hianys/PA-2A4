@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('annonces', function (Blueprint $table) {
-            $table->string('type')->default('transport'); // ou 'service'
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('kbis')->nullable(true);
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('annonces', function (Blueprint $table) {
-            $table->dropColumn('type');
+         Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('kbis');
         });
     }
 };
