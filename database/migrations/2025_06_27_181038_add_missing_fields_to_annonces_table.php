@@ -17,10 +17,8 @@ return new class extends Migration
             $table->decimal('volume', 8, 2)->nullable();
             $table->string('photo')->nullable();
             $table->text('constraints')->nullable();
-            $table->enum('status', ['publiée', 'prise en charge', 'complétée'])->default('publiée');
+            // ⚠️ On a supprimé la colonne "status" qui est déjà dans une autre migration
         });
-
-
     }
 
     /**
@@ -29,7 +27,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('annonces', function (Blueprint $table) {
-            //
+            $table->dropColumn('price');
+            $table->dropColumn('weight');
+            $table->dropColumn('volume');
+            $table->dropColumn('photo');
+            $table->dropColumn('constraints');
         });
     }
 };

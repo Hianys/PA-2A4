@@ -17,7 +17,7 @@ class TraderProfileUpdateRequest extends FormRequest
         return [
             'enseigne' => ['sometimes', 'string', 'max:255'],
             'adresse'  => ['sometimes', 'string', 'max:255'],
-            'kbis'     => 'nullable|images|mimes:pdf,jpg,jpeg,png|max:4096', 
+            'kbis' => 'nullable|mimes:pdf,jpg,jpeg,png|max:4096', 
         ];
     }
 

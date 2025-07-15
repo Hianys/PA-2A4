@@ -23,10 +23,7 @@
     </div>
     <div class="mb-4">
         <label for="kbis">Kbis (PDF/JPG/PNG)</label>
-        <input type="file" name="kbis" class="block w-full rounded p-2 border" accept="image/*" id="kbis">
-        @if(auth()->user()->kbis)
-            <a href="{{ asset('storage/' . auth()->user()->kbis) }}" target="_blank" class="text-blue-500 underline">Voir le document</a>
-        @endif
+        <input type="file" name="kbis" class="block w-full rounded p-2 border" accept=".jpg,.jpeg,.png,.pdf" id="kbis">
     </div>
 
     <button class="bg-indigo-600 text-white px-4 py-2 rounded">Mettre à jour</button>

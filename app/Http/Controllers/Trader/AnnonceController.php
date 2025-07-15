@@ -7,12 +7,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Annonce;
 use App\Http\Requests\TraderProfileUpdateRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AnnonceController extends Controller
 {
     // Dashboard commerçant
     public function dashboard()
     {
+
         $user = Auth::user();
         if (!$user->isTrader() && !$user->isAdmin()) {
             abort(403);
@@ -173,35 +175,54 @@ class AnnonceController extends Controller
    public function updateProfile(\App\Http\Requests\TraderProfileUpdateRequest $request)
 {
     $user = Auth::user();
+
     if (!$user->isTrader() && !$user->isAdmin()) {
         abort(403);
     }
 
     $validated = $request->validated();
 
+    \Log::info('Kbis reçu', ['kbis' => $request->file('kbis')]);
+
     if ($request->hasFile('kbis')) {
-    // Supprimer l'ancien fichier s'il existe
-    if ($user->kbis_path && \Storage::disk('public')->exists($user->kbis_path)) {
-        \Storage::disk('public')->delete($user->kbis_path);
+        $kbisFile = $request->file('kbis');
+
+        if (!$kbisFile->isValid()) {
+            \Log::error('❌ Fichier Kbis invalide', ['error' => $kbisFile->getErrorMessage()]);
+            return back()->withErrors(['kbis' => 'Erreur lors de l\'upload du fichier.']);
+        }
+
+        // Supprimer l'ancien fichier s'il existe
+        if ($user->kbis && \Storage::disk('public')->exists($user->kbis)) {
+            \Storage::disk('public')->delete($user->kbis);
+        }
+
+        // Générer un nom de fichier propre
+        $extension = $kbisFile->getClientOriginalExtension();
+        $filename = uniqid('kbis_') . ($extension ? '.' . $extension : '');
+
+        // Stocker dans le disque "public" (storage/app/public/commercant_docs)
+        $kbisFile->storeAs('commercant_docs', $filename, ['disk' => 'public']);
+        $filePath = 'commercant_docs/' . $filename;
+
+        \Log::info('✅ Kbis stocké à', ['path' => $filePath]);
+
+        // Enregistrer le chemin relatif dans la base
+        $user->kbis = $filePath;
     }
 
-    // Stocker le nouveau fichier dans storage/app/public/commercant_docs
-    $filePath = $request->file('kbis')->store('commercant_docs', 'public');
-
-    // Enregistrer le chemin relatif dans la base de données
-    $user->kbis_path = $filePath;
-}
-
+    // Mettre à jour les champs texte
     if (isset($validated['enseigne'])) {
         $user->enseigne = $validated['enseigne'];
     }
+
     if (isset($validated['adresse'])) {
         $user->adresse = $validated['adresse'];
     }
 
-    \Log::info('Avant save', ['kbis_path' => $user->kbis_path, 'id' => $user->id]);
+    \Log::info('Avant save', ['kbis' => $user->kbis, 'id' => $user->id]);
     $user->save();
-    \Log::info('Après save', ['kbis_path' => $user->fresh()->kbis_path, 'id' => $user->id]);
+    \Log::info('Après save', ['kbis' => $user->fresh()->kbis, 'id' => $user->id]);
 
     return redirect()->route('commercant.profile.edit')->with('success', 'Profil commerçant mis à jour !');
 }

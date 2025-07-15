@@ -39,9 +39,14 @@
                 </a>
             @endif
 
-            <x-primary-button class="ms-3">
-                @lang('log in')
-            </x-primary-button>
+           <button type="submit" class="ms-3 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+            @lang('log in')
+            </button>
         </div>
+        <script>
+    document.querySelector('form').addEventListener('submit', () => {
+        alert('Form submitted !');
+    });
+</script>
     </form>
 </x-guest-layout>

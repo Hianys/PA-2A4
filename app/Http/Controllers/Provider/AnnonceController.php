@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Trader;
+namespace App\Http\Controllers\Provider;
 
 use App\Http\Controllers\Controller;
 use App\Models\Annonce;

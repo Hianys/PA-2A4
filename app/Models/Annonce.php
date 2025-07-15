@@ -15,10 +15,10 @@ class Annonce extends Model
         'preferred_date',
         'time',
         'description',
-        'from_latitude',
-        'from_longitude',
-        'to_latitude',
-        'to_longitude',
+        'from_lat',
+        'from_lng',
+        'to_lat',
+        'to_lng',
         'price',
         'weight',
         'volume',
@@ -36,10 +36,5 @@ class Annonce extends Model
     public function segments()
     {
         return $this->hasMany(TransportSegment::class);
-    }
-
-    public function provider()
-    {
-        return $this->belongsTo(User::class, 'provider_id');
     }
 }

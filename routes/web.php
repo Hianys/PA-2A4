@@ -138,4 +138,8 @@ Route::post('/upload', function (Request $request) {
     return back()->with('error', 'Aucun fichier sélectionné.');
 })->name('file.upload');
 
+Route::get('/test-auth', function () {
+    return Auth::check() ? 'Connecté en tant que : ' . Auth::user()->email : 'Non connecté';
+});
+
 require __DIR__.'/auth.php';

@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-
-    Schema::create('annonces', function (Blueprint $table) {
-        $table->id();
-        $table->string('titre');
-        $table->text('description')->nullable();
-        $table->string('status')->default('published');
-        $table->string('type')->default('transport');
-        $table->timestamps();
-    });
-    
+        Schema::create('annonces', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->string('from_city');
+            $table->string('to_city');
+            $table->date('preferred_date');
+            $table->timestamps();
+        });
     }
 
     /**
