@@ -276,7 +276,28 @@ class AdminController extends Controller
 
 
 
+    public function documents()
+{
+    // On récupère uniquement les utilisateurs commerçants ayant un KBIS
+    $users = User::where('role', 'commercant')
+                 ->whereNotNull('kbis')
+                 ->get();
 
+    return view('admin.documents', compact('users'));
+}
+
+    public function toggleKbisValidation($id)
+{
+    $user = User::findOrFail($id);
+
+    // Inverse la valeur actuelle
+    $user->kbis_valide = !$user->kbis_valide;
+    $user->save();
+
+    $message = $user->kbis_valide ? 'KBIS validé avec succès.' : 'Validation du KBIS annulée.';
+
+    return redirect()->route('admin.documents')->with('success', $message);
+}
 
  public function validateDocuments($id)
 {

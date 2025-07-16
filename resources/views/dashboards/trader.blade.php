@@ -10,9 +10,11 @@
 
             {{-- Liens de navigation --}}
             <div class="flex flex-col sm:flex-row justify-between gap-4 mb-6">
-                <a href="{{ route('commercant.annonces.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700 text-center">
-                    @lang("Create a new announcement")
-                </a>
+                @if (Auth::user()->kbis_valide)
+                    <a href="{{ route('commercant.annonces.create') }}" class="inline-block bg-blue-600 text-white font-semibold px-4 py-2 rounded hover:bg-blue-700 transition">@lang("Create a new announcement")</a>
+                @else
+                    <p class="text-red-600">@lang("Your KBIS must be validated to create an announcement.")</p>
+                @endif
                 <a href="{{ route('commercant.annonces.index') }}" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 text-center">
                     @lang("View my announcements")
                 </a>
@@ -30,7 +32,7 @@
                         <div>@lang("Open")</div>
                     </div>
                     <div>
-                        <div class="text-2xl font-bold text-yellow-600">{{ $annonces->where('status', 'taken')->count() }}</div>
+                        <div class="text-2xl font-bold text-yellow-600">{{ $annonces->where('status', 'prise en charge')->count() }}</div>
                         <div>@lang("Accepted")</div>
                     </div>
                     <div>

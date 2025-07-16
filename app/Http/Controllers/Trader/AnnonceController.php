@@ -49,17 +49,23 @@ class AnnonceController extends Controller
 
     // Formulaire de création
     public function create()
-    {
-        $user = Auth::user();
-        if (!$user->isTrader() && !$user->isAdmin()) {
-            abort(403);
-        }
+{
+    $user = Auth::user();
 
-        // On passe l'adresse préremplie
-        $adresse = $user->adresse;
-
-        return view('trader.annonces.create', compact('adresse'));
+    if (!$user->isTrader() && !$user->isAdmin()) {
+        abort(403);
     }
+
+    if ($user->isTrader() && !$user->kbis_valide) {
+        return redirect()->route('trader.dashboard')
+            ->with('error', 'Vous ne pouvez pas publier d\'annonce tant que votre KBIS n\'est pas validé.');
+    }
+
+    // On passe l'adresse préremplie
+    $adresse = $user->adresse;
+
+    return view('trader.annonces.create', compact('adresse'));
+}
 
     // Sauvegarde annonce
     public function store(Request $request)
@@ -154,7 +160,7 @@ class AnnonceController extends Controller
             abort(403);
         }
 
-        if ($annonce->status !== 'taken') {
+        if ($annonce->status !== 'prise en charges') {
             return redirect()->back()->with('error', 'La mission n\'est pas en cours.');
         }
 

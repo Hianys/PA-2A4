@@ -43,51 +43,59 @@ class AnnonceController extends Controller
     }
 
     public function store(Request $request)
-    {
-        if (!(auth()->user()->isClient() || auth()->user()->isAdmin())) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'type' => 'required|in:transport,service',
-            'preferred_date' => 'nullable|date',
-            'from_city' => 'nullable|string|max:255',
-            'to_city' => 'nullable|string|max:255',
-            'from_lat' => 'nullable|numeric',
-            'from_lng' => 'nullable|numeric',
-            'to_lat' => 'nullable|numeric',
-            'to_lng' => 'nullable|numeric',
-            'price' => 'nullable|numeric',
-            'weight' => 'nullable|numeric',
-            'volume' => 'nullable|numeric',
-            'constraints' => 'nullable|string',
-            'status' => 'nullable|in:publiée,taken,completed',
-            'from_latitude' => 'nullable|numeric',
-            'from_longitude' => 'nullable|numeric',
-            'to_latitude' => 'nullable|numeric',
-            'to_longitude' => 'nullable|numeric',
-            'photo' => 'nullable|file|image|max:2048',
-        ]);
-
-        $data = $validated;
-        unset($data['photo']);
-        $data['user_id'] = auth()->id();
-        $data['status'] = 'publiée';
-
-        if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('uploads', 'public');
-            $data['photo'] = $path;
-        }else {
-            $data['photo'] = null;
-        }
-
-        Annonce::create($data);
-
-        return redirect()->route('client.annonces.index')
-            ->with('success', 'Annonce créée avec succès.');
+{
+    if (!(auth()->user()->isClient() || auth()->user()->isAdmin())) {
+        abort(403);
     }
+
+    $rules = [
+        'title' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'type' => 'required|in:transport,service',
+        'preferred_date' => 'nullable|date',
+        'price' => 'nullable|numeric',
+        'weight' => 'nullable|numeric',
+        'volume' => 'nullable|numeric',
+        'constraints' => 'nullable|string',
+        'status' => 'nullable|in:publiée,prise en charge,completed',
+        'photo' => 'nullable|file|image|max:2048',
+    ];
+
+    if ($request->input('type') === 'transport') {
+        $rules['from_city'] = 'required|string|max:255';
+        $rules['to_city'] = 'required|string|max:255';
+        $rules['from_lat'] = 'required|numeric';
+        $rules['from_lng'] = 'required|numeric';
+        $rules['to_lat'] = 'required|numeric';
+        $rules['to_lng'] = 'required|numeric';
+    }
+
+    $validated = $request->validate($rules);
+
+    // Convertir les champs numériques vides en null
+    foreach (['weight', 'volume', 'from_lat', 'from_lng', 'to_lat', 'to_lng'] as $field) {
+        if (array_key_exists($field, $validated) && $validated[$field] === '') {
+            $validated[$field] = null;
+        }
+    }
+
+    $data = $validated;
+    unset($data['photo']);
+    $data['user_id'] = auth()->id();
+    $data['status'] = 'publiée';
+
+    if ($request->hasFile('photo')) {
+        $path = $request->file('photo')->store('uploads', 'public');
+        $data['photo'] = $path;
+    } else {
+        $data['photo'] = null;
+    }
+
+    Annonce::create($data);
+
+    return redirect()->route('client.annonces.index')
+        ->with('success', 'Annonce créée avec succès.');
+}
 
     public function show(Annonce $annonce)
     {
@@ -121,50 +129,63 @@ class AnnonceController extends Controller
     }
 
     public function update(Request $request, Annonce $annonce)
-    {
-        if (
-            !(auth()->user()->isClient() || auth()->user()->isAdmin()) ||
-            (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'type' => 'required|in:transport,service',
-            'preferred_date' => 'nullable|date',
-            'from_city' => 'nullable|string|max:255',
-            'to_city' => 'nullable|string|max:255',
-            'price' => 'nullable|numeric',
-            'weight' => 'nullable|numeric',
-            'volume' => 'nullable|numeric',
-            'constraints' => 'nullable|string',
-            'status' => 'nullable|in:publiée,taken,completed',
-            'from_latitude' => 'nullable|numeric',
-            'from_longitude' => 'nullable|numeric',
-            'to_latitude' => 'nullable|numeric',
-            'to_longitude' => 'nullable|numeric',
-            'photo' => 'nullable|file|image|max:2048',
-        ]);
-
-        $data = $validated;
-        $data['user_id'] = auth()->id();
-
-        unset($data['photo']);
-
-        if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('uploads', 'public');
-            $data['photo'] = $path;
-        } else {
-            $data['photo'] = $annonce->photo; // conserve l'ancienne si pas de nouvelle
-        }
-
-        $annonce->update($data);
-
-        return redirect()->route('client.annonces.show', $annonce)
-            ->with('success', 'Annonce mise à jour avec succès.');
+{
+    if (
+        !(auth()->user()->isClient() || auth()->user()->isAdmin()) ||
+        (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
+    ) {
+        abort(403);
     }
+
+    $rules = [
+        'title' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'type' => 'required|in:transport,service',
+        'preferred_date' => 'nullable|date',
+        'price' => 'nullable|numeric',
+        'weight' => 'nullable|numeric',
+        'volume' => 'nullable|numeric',
+        'constraints' => 'nullable|string',
+        'status' => 'nullable|in:publiée,prise en charge,completed',
+        'photo' => 'nullable|file|image|max:2048',
+    ];
+
+    if ($request->input('type') === 'transport') {
+        $rules['from_city'] = 'required|string|max:255';
+        $rules['to_city'] = 'required|string|max:255';
+        $rules['from_lat'] = 'required|numeric';
+        $rules['from_lng'] = 'required|numeric';
+        $rules['to_lat'] = 'required|numeric';
+        $rules['to_lng'] = 'required|numeric';
+    }
+
+    $validated = $request->validate($rules);
+
+    // Convertir les champs numériques vides en null
+    foreach (['weight', 'volume', 'from_lat', 'from_lng', 'to_lat', 'to_lng'] as $field) {
+        if (array_key_exists($field, $validated) && $validated[$field] === '') {
+            $validated[$field] = null;
+        }
+    }
+
+    $data = $validated;
+    $data['user_id'] = auth()->id();
+
+    unset($data['photo']);
+
+    if ($request->hasFile('photo')) {
+        $path = $request->file('photo')->store('uploads', 'public');
+        $data['photo'] = $path;
+    } else {
+        $data['photo'] = $annonce->photo;
+    }
+
+    $annonce->update($data);
+
+    return redirect()->route('client.annonces.show', $annonce)
+        ->with('success', 'Annonce mise à jour avec succès.');
+}
+
 
 
     public function destroy(Annonce $annonce)

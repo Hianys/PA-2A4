@@ -9,58 +9,64 @@ use Illuminate\Support\Facades\Auth;
 
 class AnnonceController extends Controller
 {
-    // Dashboard commerçant
     public function dashboard()
-    {
-        $user = Auth::user();
-        if (!$user->isTrader() && !$user->isAdmin()) {
-            abort(403);
-        }
+{
+    $user = Auth::user();
 
-        // Toutes les annonces de transport postées par CE commerçant
-        $annonces = Annonce::where('user_id', $user->id)
-            ->where('type', 'transport')
-            ->latest()
-            ->get();
-
-        return view('dashboards.trader', compact('annonces'));
+    if (!$user->isProvider() && !$user->isAdmin()) {
+        abort(403);
     }
 
-    // Liste des annonces du commerçant
+    // Les missions acceptées ou complétées par le prestataire
+    $missions = Annonce::where('provider_id', $user->id)
+        ->whereIn('status', ['prise en charge', 'complétée'])
+        ->latest()
+        ->get();
+
+    // Calcul des revenus du mois
+    $revenus = $missions
+        ->where('status', 'complétée')
+        ->whereBetween('preferred_date', [
+            now()->startOfMonth(),
+            now()->endOfMonth()
+        ])
+        ->sum('price');
+
+    return view('dashboards.provider', compact('missions', 'revenus'));
+}
+
     public function index()
-    {
-        $user = Auth::user();
-        if (!$user->isTrader() && !$user->isAdmin()) {
-            abort(403);
-        }
+{
+    $user = Auth::user();
 
-        $annonces = Annonce::where('user_id', $user->id)
-            ->where('type', 'transport')
-            ->latest()
-            ->get();
-
-        return view('trader.annonces.index', compact('annonces'));
+    if (!$user->isProvider() && !$user->isAdmin()) {
+        abort(403);
     }
 
-    // Formulaire de création
+    // Affiche uniquement les annonces de type "service" qui n'ont pas encore été acceptées
+    $annonces = Annonce::where('type', 'service')
+        ->whereNull('provider_id')
+        ->where('status', 'publiée')
+        ->latest()
+        ->get();
+
+    return view('provider.annonces.index', compact('annonces'));
+}
+
     public function create()
     {
         $user = Auth::user();
-        if (!$user->isTrader() && !$user->isAdmin()) {
+        if (!$user->isProvider() && !$user->isAdmin()) {
             abort(403);
         }
 
-        // On passe l'adresse préremplie (via la fiche commerçant)
-        $adresse = $user->commercantInfo ? $user->commercantInfo->adresse : '';
-
-        return view('trader.annonces.create', compact('adresse'));
+        return view('provider.annonces.create');
     }
 
-    // Sauvegarde annonce
     public function store(Request $request)
     {
         $user = Auth::user();
-        if (!$user->isTrader() && !$user->isAdmin()) {
+        if (!$user->isProvider() && !$user->isAdmin()) {
             abort(403);
         }
 
@@ -71,18 +77,12 @@ class AnnonceController extends Controller
             'price' => 'nullable|numeric',
             'constraints' => 'nullable|string',
             'photo' => 'nullable|image',
-            'to_city' => 'required|string|max:255', // Adresse de livraison
         ]);
 
         $annonce = new Annonce($validated);
         $annonce->user_id = $user->id;
-        $annonce->type = 'transport';
+        $annonce->type = 'service';
         $annonce->status = 'publiée';
-
-        // Ajoute l’adresse du commerçant s’il a une fiche
-        if ($user->commercantInfo) {
-            $annonce->from_city = $user->commercantInfo->adresse;
-        }
 
         if ($request->hasFile('photo')) {
             $annonce->photo = $request->file('photo')->store('annonces', 'public');
@@ -90,33 +90,40 @@ class AnnonceController extends Controller
 
         $annonce->save();
 
-        return redirect()->route('commercant.annonces.index')->with('success', 'Annonce créée avec succès.');
+        return redirect()->route('provider.annonces.index')->with('success', 'Annonce créée avec succès.');
     }
 
     public function show(Annonce $annonce)
-    {
-        $user = Auth::user();
-        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
-            abort(403);
-        }
+{
+    $user = Auth::user();
 
-        return view('trader.annonces.show', compact('annonce'));
+    // Ne montrer que les annonces de type "service"
+    if ($annonce->type !== 'service') {
+        abort(403);
     }
+
+    // Si la mission est déjà acceptée par un autre prestataire, bloquer l'accès
+    if ($annonce->status === 'prise en charge' && $annonce->provider_id !== $user->id) {
+        abort(403);
+    }
+
+    return view('provider.annonces.show', compact('annonce'));
+}
 
     public function edit(Annonce $annonce)
     {
         $user = Auth::user();
-        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
+        if ((!$user->isProvider() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
-        return view('trader.annonces.edit', compact('annonce'));
+        return view('provider.annonces.edit', compact('annonce'));
     }
 
     public function update(Request $request, Annonce $annonce)
     {
         $user = Auth::user();
-        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
+        if ((!$user->isProvider() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
@@ -126,40 +133,79 @@ class AnnonceController extends Controller
             'preferred_date' => 'required|date',
             'price' => 'nullable|numeric',
             'constraints' => 'nullable|string',
-            'to_city' => 'required|string|max:255',
         ]);
 
         $annonce->update($validated);
 
-        return redirect()->route('commercant.annonces.index')->with('success', 'Annonce mise à jour avec succès.');
+        return redirect()->route('provider.annonces.index')->with('success', 'Annonce mise à jour avec succès.');
     }
 
     public function destroy(Annonce $annonce)
     {
         $user = Auth::user();
-        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
+        if ((!$user->isProvider() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
         $annonce->delete();
 
-        return redirect()->route('commercant.annonces.index')->with('success', 'Annonce supprimée.');
+        return redirect()->route('provider.annonces.index')->with('success', 'Annonce supprimée.');
     }
 
     public function markCompleted(Annonce $annonce)
     {
         $user = Auth::user();
-        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
+        if ((!$user->isProvider() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
-        if ($annonce->status !== 'taken') {
+        if ($annonce->status !== 'prise en charge') {
             return redirect()->back()->with('error', 'La mission n\'est pas en cours.');
         }
 
         $annonce->status = 'complétée';
         $annonce->save();
 
-        return redirect()->route('commercant.annonces.index')->with('success', 'Mission marquée comme complétée.');
+        return redirect()->route('provider.annonces.index')->with('success', 'Mission marquée comme complétée.');
     }
-};
+
+    public function accept(Annonce $annonce)
+{
+    $user = Auth::user();
+
+    // Vérifie que l'annonce est de type "service" et encore disponible
+    if ($annonce->type !== 'service' || $annonce->status !== 'publiée') {
+        return redirect()->back()->with('error', 'Cette annonce ne peut pas être acceptée.');
+    }
+
+    // Vérifie que l'annonce n'est pas déjà prise
+    if ($annonce->provider_id !== null) {
+        return redirect()->back()->with('error', 'Cette annonce a déjà été acceptée par un autre prestataire.');
+    }
+
+    // Associe la mission au prestataire connecté
+    $annonce->provider_id = $user->id;
+    $annonce->status = 'prise en charge';
+    $annonce->save();
+
+    return redirect()->route('provider.dashboard')->with('success', 'Annonce acceptée avec succès.');
+}
+
+    public function missions()
+{
+    $user = Auth::user();
+
+    if (!$user->isProvider() && !$user->isAdmin()) {
+        abort(403);
+    }
+
+    // Toutes les missions acceptées ou complétées
+    $annonces = Annonce::where('provider_id', $user->id)
+        ->whereIn('status', ['prise en charge', 'complétée'])
+        ->latest()
+        ->get();
+
+    return view('provider.annonces.missions', compact('annonces'));
+}
+
+}
