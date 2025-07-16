@@ -8,6 +8,8 @@ use App\Models\Annonce;
 use App\Http\Requests\TraderProfileUpdateRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class AnnonceController extends Controller
 {
@@ -188,7 +190,7 @@ class AnnonceController extends Controller
         $kbisFile = $request->file('kbis');
 
         if (!$kbisFile->isValid()) {
-            \Log::error('❌ Fichier Kbis invalide', ['error' => $kbisFile->getErrorMessage()]);
+            \Log::error(' Fichier Kbis invalide', ['error' => $kbisFile->getErrorMessage()]);
             return back()->withErrors(['kbis' => 'Erreur lors de l\'upload du fichier.']);
         }
 
@@ -226,4 +228,57 @@ class AnnonceController extends Controller
 
     return redirect()->route('commercant.profile.edit')->with('success', 'Profil commerçant mis à jour !');
 }
+
+    public function showConsentForm()
+{
+    $user = Auth::user();
+    return view('trader.consentement', ['enseigne' => $user->enseigne]);
+}
+
+   public function generateConsentPdf(Request $request)
+{
+    $request->validate([
+        'accept_terms' => 'nullable',
+        'enseigne' => 'required|string|max:255',
+    ]);
+
+    $user = Auth::user();
+
+    $pdf = Pdf::loadView('pdfs.consentement', [
+        'enseigne' => $request->enseigne,
+        'date' => now()->format('d/m/Y'),
+        'user' => $user,
+    ]);
+
+    return $pdf->download('consentement_' . $user->id . '.pdf');
+}   
+
+public function validerConsentement(Request $request)
+{
+    $request->validate([
+        'accept_terms' => 'nullable', // facultatif si décoché
+        'enseigne' => 'required|string|max:255',
+    ]);
+
+    $user = Auth::user();
+    $user->enseigne = $request->enseigne;
+    $user->consentement_valide = $request->has('accept_terms');
+    $user->save();
+
+    return redirect()->route('commercant.consentement.form')->with('success', 'Consentement mis à jour.');
+}
+
+public function telechargerPdf()
+{
+    $user = Auth::user();
+
+    $pdf = Pdf::loadView('pdfs.consentement', [
+        'enseigne' => $user->enseigne,
+        'date' => now()->format('d/m/Y'),
+        'user' => $user,
+    ]);
+
+    return $pdf->download('consentement_' . $user->id . '.pdf');
+}
+
 }

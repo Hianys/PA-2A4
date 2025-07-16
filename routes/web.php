@@ -88,10 +88,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('commercant/annonces/{annonce}', [TraderAnnonceController::class, 'destroy'])->name('commercant.annonces.destroy');
     Route::patch('commercant/annonces/{annonce}/complete', [TraderAnnonceController::class, 'markCompleted'])->name('commercant.annonces.complete');
     Route::get('/commercant/dashboard', [TraderAnnonceController::class, 'dashboard'])->name('trader.dashboard');
+    
 
     // Profil commerçant
     Route::get('/commercant/profil', [TraderAnnonceController::class, 'editProfile'])->name('commercant.profile.edit');
     Route::post('/commercant/profil', [TraderAnnonceController::class, 'updateProfile'])->name('commercant.profile.update');
+
+    Route::post('/commercant/consentement', [TraderAnnonceController::class, 'generateConsentPdf'])->name('commercant.consentement.submit');
+    Route::get('/commercant/consentement', [TraderAnnonceController::class, 'showConsentForm'])->name('commercant.consentement.form');
+    Route::post('/commercant/consentement/valider', [TraderAnnonceController::class, 'validerConsentement'])->name('commercant.consentement.valider');
+    Route::post('/commercant/consentement/pdf', [TraderAnnonceController::class, 'telechargerPdf'])->name('commercant.consentement.pdf');
 });
 
 //Actions dans le profil de l'utilisateur
@@ -141,5 +147,6 @@ Route::post('/upload', function (Request $request) {
 Route::get('/test-auth', function () {
     return Auth::check() ? 'Connecté en tant que : ' . Auth::user()->email : 'Non connecté';
 });
+
 
 require __DIR__.'/auth.php';
