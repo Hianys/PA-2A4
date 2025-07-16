@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\WalletController;
 use App\Http\Controllers\Client\AnnonceController as ClientAnnonceController;
 use App\Http\Controllers\Delivery\AnnonceController as DeliveryAnnonceController;
 use App\Http\Controllers\ProfileController;
@@ -129,14 +130,16 @@ Route::get('/document/{filename}', function ($filename) {
     return response($file, 200)->header('Content-Type', $type);
 })->middleware('auth')->name('documents.show');
 
-
-use App\Http\Controllers\WalletController;
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
     Route::post('/wallet/checkout', [WalletController::class, 'checkout'])->name('wallet.checkout');
     Route::get('/wallet/success', [WalletController::class, 'success'])->name('wallet.success');
-});
+    Route::post('/wallet/withdraw', [WalletController::class, 'withdraw'])->name('wallet.withdraw');
 
+
+    Route::post('/delivery/{delivery}/pay', [ClientAnnonceController::class, 'payDelivery'])->name('delivery.pay');
+    Route::post('/delivery/{delivery}/confirm', [ClientAnnonceController::class, 'confirmDelivery'])->name('delivery.confirm.client');
+    Route::post('/delivery/{delivery}/confirm-delivery', [DeliveryAnnonceController::class, 'confirmDelivery'])->name('delivery.confirm.delivery');
+});
 
 require __DIR__.'/auth.php';

@@ -27,9 +27,9 @@
                         <x-dropdown-link :href="route('profile.edit')">
                             Mon profil
                         </x-dropdown-link>
-                        
+
                         <x-dropdown-link :href="route('wallet.index')">
-                         💰 Mon portefeuille
+                         Mon portefeuille
                         </x-dropdown-link>
 
                         <!-- Logout -->
