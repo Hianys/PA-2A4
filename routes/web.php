@@ -94,6 +94,9 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/client/annonces/{annonce}/validate', [ClientAnnonceController::class, 'confirmDelivery'])->name('client.annonces.validate');
     Route::post('/client/annonces/{annonce}/payer', [ClientAnnonceController::class, 'payAnnonce'])->name('client.annonces.payer');
     Route::post('/delivery/{delivery}/pay', [ClientAnnonceController::class, 'payDelivery'])->name('delivery.pay');
+    Route::post('/client/annonces/{annonce}/valider-segments', [ClientAnnonceController::class, 'validateTransportAnnonce'])->name('client.annonces.validate.segments');
+    Route::post('/client/annonces/{annonce}/confirmer-transport', [ClientAnnonceController::class, 'confirmTransportDelivery'])->name('client.annonces.confirmTransport');
+    Route::post('/client/annonces/{annonce}/mark-awaiting-payment', [ClientAnnonceController::class, 'markAsAwaitingPayment'])->name('client.annonces.markAwaitingPayment');
 
 });
 
@@ -106,7 +109,6 @@ Route::middleware('auth')->group(function () {
     Route::patch('livreur/segments/{segment}/status', [TransportSegmentController::class, 'updateStatus'])->name('segments.updateStatus');
     Route::post('/livreur/annonces/{annonce}/confirmer', [DeliveryAnnonceController::class, 'confirmerAnnonce'])->name('delivery.annonces.confirmer');
     Route::post('/livreur/annonces/{annonce}/marquer-en-attente', [DeliveryAnnonceController::class, 'marquerEnAttenteDePaiement'])->name('delivery.annonces.markPending');
-    Route::post('/delivery/annonces/{annonce}/mark-as-waiting-payment', [DeliveryAnnonceController::class, 'marquerEnAttenteDePaiement'])->name('delivery.annonces.markAsWaitingPayment');
     Route::get('/delivery/mes-annonces', [DeliveryAnnonceController::class, 'mesAnnonces'])->name('delivery.annonces.mes');
 
 

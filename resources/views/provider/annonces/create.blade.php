@@ -43,7 +43,7 @@
                     <x-text-input type="date" id="preferred_date" name="preferred_date" class="mt-1" value="{{ old('preferred_date') }}" min="{{ date('Y-m-d') }}" required />
                     <x-input-error :messages="$errors->get('preferred_date')" class="mt-1" />
                 </div>
-
+    
                 <div>
                     <label for="price" class="block text-sm font-medium text-gray-700">@lang("Price") (€)</label>
                     <x-text-input id="price" name="price" type="number" step="0.01" class="mt-1" value="{{ old('price') }}" />

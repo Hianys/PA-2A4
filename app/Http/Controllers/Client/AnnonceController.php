@@ -1,124 +1,138 @@
 <?php
-
 namespace App\Http\Controllers\Client;
 
-use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
-use App\Models\Annonce;
-use Illuminate\Http\Request;
-use App\Services\WalletService;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
+    use Illuminate\Support\Facades\Log;
+    use App\Http\Controllers\Controller;
+    use App\Models\Annonce;
+    use Illuminate\Http\Request;
+    use App\Services\WalletService;
+    use Illuminate\Support\Facades\DB;
+    use Illuminate\Support\Facades\Http;
+    use App\Services\PaymentService;
 
-class AnnonceController extends Controller
-{
+    class AnnonceController extends Controller
+    {
 
-    protected $walletService;
+        protected $walletService;
+    protected $paymentService;
 
-    public function __construct(WalletService $walletService)
+        public function __construct(WalletService $walletService, PaymentService $paymentService)
     {
         $this->walletService = $walletService;
-    }
-    public function index()
+        $this->paymentService = $paymentService;
+    }   
+        public function index()
+        {
+            if (!(auth()->user()->isClient() || auth()->user()->isAdmin())) {
+                abort(403);
+            }
+
+            $annonces = auth()->user()
+                ->annonces()
+                ->where('status', '!=', 'archivée')
+                ->latest()
+                ->get();
+
+
+            return view('client.annonces.index', compact('annonces'));
+        }
+
+        public function create()
+        {
+            if (!(auth()->user()->isClient() || auth()->user()->isAdmin())) {
+                abort(403);
+            }
+
+            return view('client.annonces.create');
+        }
+
+        public function store(Request $request)
     {
         if (!(auth()->user()->isClient() || auth()->user()->isAdmin())) {
             abort(403);
         }
 
-        $annonces = auth()->user()
-            ->annonces()
-            ->where('status', '!=', 'archivée')
-            ->latest()
-            ->get();
+        $rules = [
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'type' => 'required|in:transport,service',
+            'preferred_date' => ['required', 'date', 'after_or_equal:today'],
+            'price' => 'nullable|numeric',
+            'weight' => 'nullable|numeric',
+            'volume' => 'nullable|numeric',
+            'constraints' => 'nullable|string',
+            'status' => 'nullable|in:publiée,prise en charge,completée',
+            'photo' => 'nullable|file|image|max:2048',
+        ];
 
-
-        return view('client.annonces.index', compact('annonces'));
-    }
-
-    public function create()
-    {
-        if (!(auth()->user()->isClient() || auth()->user()->isAdmin())) {
-            abort(403);
+        if ($request->input('type') === 'transport') {
+            $rules['from_city'] = 'required|string|max:255';
+            $rules['to_city'] = 'required|string|max:255';
+            $rules['from_lat'] = 'required|numeric';
+            $rules['from_lng'] = 'required|numeric';
+            $rules['to_lat'] = 'required|numeric';
+            $rules['to_lng'] = 'required|numeric';
         }
 
-        return view('client.annonces.create');
-    }
+        $validated = $request->validate($rules);
 
-    public function store(Request $request)
-{
-    if (!(auth()->user()->isClient() || auth()->user()->isAdmin())) {
-        abort(403);
-    }
-
-    $rules = [
-        'title' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'type' => 'required|in:transport,service',
-        'preferred_date' => 'required|date|after:today',
-        'price' => 'nullable|numeric',
-        'weight' => 'nullable|numeric',
-        'volume' => 'nullable|numeric',
-        'constraints' => 'nullable|string',
-        'status' => 'nullable|in:publiée,prise en charge,completée',
-        'photo' => 'nullable|file|image|max:2048',
-    ];
-
-    if ($request->input('type') === 'transport') {
-        $rules['from_city'] = 'required|string|max:255';
-        $rules['to_city'] = 'required|string|max:255';
-        $rules['from_lat'] = 'required|numeric';
-        $rules['from_lng'] = 'required|numeric';
-        $rules['to_lat'] = 'required|numeric';
-        $rules['to_lng'] = 'required|numeric';
-    }
-
-    $validated = $request->validate($rules);
-
-    // Convertir les champs numériques vides en null
-    foreach (['weight', 'volume', 'from_lat', 'from_lng', 'to_lat', 'to_lng'] as $field) {
-        if (array_key_exists($field, $validated) && $validated[$field] === '') {
-            $validated[$field] = null;
-        }
-    }
-
-    $data = $validated;
-    unset($data['photo']);
-    $data['user_id'] = auth()->id();
-    $data['status'] = 'publiée';
-
-    if ($request->hasFile('photo')) {
-        $path = $request->file('photo')->store('uploads', 'public');
-        $data['photo'] = $path;
-    } else {
-        $data['photo'] = null;
-    }
-
-    Annonce::create($data);
-
-    return redirect()->route('client.annonces.index')
-        ->with('success', 'Annonce créée avec succès.');
-}
-
-    public function show(Annonce $annonce)
-    {
-        if (
-            !(auth()->user()->isClient() || auth()->user()->isAdmin()) ||
-            (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
-            abort(403);
+        // Convertir les champs numériques vides en null
+        foreach (['weight', 'volume', 'from_lat', 'from_lng', 'to_lat', 'to_lng'] as $field) {
+            if (array_key_exists($field, $validated) && $validated[$field] === '') {
+                $validated[$field] = null;
+            }
         }
 
-        if ($annonce->status === 'archivée') {
-            abort(404, 'Cette annonce est archivée.');
+        $data = $validated;
+        unset($data['photo']);
+        $data['user_id'] = auth()->id();
+        $data['status'] = 'publiée';
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('uploads', 'public');
+            $data['photo'] = $path;
+        } else {
+            $data['photo'] = null;
         }
 
-        $annonce->load('segments.delivery');
-        $segments = $annonce->segments;
+        Annonce::create($data);
 
-        return view('client.annonces.show', compact('annonce', 'segments'));
+        return redirect()->route('client.annonces.index')
+            ->with('success', 'Annonce créée avec succès.');
     }
 
-    public function edit(Annonce $annonce)
+        public function show(Annonce $annonce)
+        {
+            if (
+                !(auth()->user()->isClient() || auth()->user()->isAdmin()) ||
+                (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
+            ) {
+                abort(403);
+            }
+
+            if ($annonce->status === 'archivée') {
+                abort(404, 'Cette annonce est archivée.');
+            }
+
+            $annonce->load('segments.delivery');
+            $segments = $annonce->segments;
+
+            return view('client.annonces.show', compact('annonce', 'segments'));
+        }
+
+        public function edit(Annonce $annonce)
+        {
+            if (
+                !(auth()->user()->isClient() || auth()->user()->isAdmin()) ||
+                (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
+            ) {
+                abort(403);
+            }
+
+            return view('client.annonces.edit', compact('annonce'));
+        }
+
+        public function update(Request $request, Annonce $annonce)
     {
         if (
             !(auth()->user()->isClient() || auth()->user()->isAdmin()) ||
@@ -127,140 +141,80 @@ class AnnonceController extends Controller
             abort(403);
         }
 
-        return view('client.annonces.edit', compact('annonce'));
-    }
+        $rules = [
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'type' => 'required|in:transport,service',
+            'preferred_date' => 'nullable|date',
+            'price' => 'nullable|numeric',
+            'weight' => 'nullable|numeric',
+            'volume' => 'nullable|numeric',
+            'constraints' => 'nullable|string',
+            'status' => 'nullable|in:publiée,prise en charge,completée',
+            'photo' => 'nullable|file|image|max:2048',
+        ];
 
-    public function update(Request $request, Annonce $annonce)
-{
-    if (
-        !(auth()->user()->isClient() || auth()->user()->isAdmin()) ||
-        (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-    ) {
-        abort(403);
-    }
-
-    $rules = [
-        'title' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'type' => 'required|in:transport,service',
-        'preferred_date' => 'nullable|date',
-        'price' => 'nullable|numeric',
-        'weight' => 'nullable|numeric',
-        'volume' => 'nullable|numeric',
-        'constraints' => 'nullable|string',
-        'status' => 'nullable|in:publiée,prise en charge,completed',
-        'photo' => 'nullable|file|image|max:2048',
-    ];
-
-    if ($request->input('type') === 'transport') {
-        $rules['from_city'] = 'required|string|max:255';
-        $rules['to_city'] = 'required|string|max:255';
-        $rules['from_lat'] = 'required|numeric';
-        $rules['from_lng'] = 'required|numeric';
-        $rules['to_lat'] = 'required|numeric';
-        $rules['to_lng'] = 'required|numeric';
-    }
-
-    $validated = $request->validate($rules);
-
-    // Convertir les champs numériques vides en null
-    foreach (['weight', 'volume', 'from_lat', 'from_lng', 'to_lat', 'to_lng'] as $field) {
-        if (array_key_exists($field, $validated) && $validated[$field] === '') {
-            $validated[$field] = null;
-        }
-    }
-
-    $data = $validated;
-    $data['user_id'] = auth()->id();
-
-    unset($data['photo']);
-
-    if ($request->hasFile('photo')) {
-        $path = $request->file('photo')->store('uploads', 'public');
-        $data['photo'] = $path;
-    } else {
-        $data['photo'] = $annonce->photo;
-    }
-
-    $annonce->update($data);
-
-    return redirect()->route('client.annonces.show', $annonce)
-        ->with('success', 'Annonce mise à jour avec succès.');
-}
-
-
-
-    public function destroy(Annonce $annonce)
-    {
-        if (
-            !(auth()->user()->isClient() || auth()->user()->isAdmin()) ||
-            (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
-            abort(403);
+        if ($request->input('type') === 'transport') {
+            $rules['from_city'] = 'required|string|max:255';
+            $rules['to_city'] = 'required|string|max:255';
+            $rules['from_lat'] = 'required|numeric';
+            $rules['from_lng'] = 'required|numeric';
+            $rules['to_lat'] = 'required|numeric';
+            $rules['to_lng'] = 'required|numeric';
         }
 
-        $annonce->delete();
-        return redirect()->route('client.annonces.index')->with('success', 'Annonce supprimée.');
+        $validated = $request->validate($rules);
+
+        // Convertir les champs numériques vides en null
+        foreach (['weight', 'volume', 'from_lat', 'from_lng', 'to_lat', 'to_lng'] as $field) {
+            if (array_key_exists($field, $validated) && $validated[$field] === '') {
+                $validated[$field] = null;
+            }
+        }
+
+        $data = $validated;
+        $data['user_id'] = auth()->id();
+
+        unset($data['photo']);
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('uploads', 'public');
+            $data['photo'] = $path;
+        } else {
+            $data['photo'] = $annonce->photo;
+        }
+
+        $annonce->update($data);
+
+        return redirect()->route('client.annonces.show', $annonce)
+            ->with('success', 'Annonce mise à jour avec succès.');
     }
 
-    public function payAnnonce(Request $request, Annonce $annonce)
+
+
+        public function destroy(Annonce $annonce)
+        {
+            if (
+                !(auth()->user()->isClient() || auth()->user()->isAdmin()) ||
+                (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
+            ) {
+                abort(403);
+            }
+
+            $annonce->delete();
+            return redirect()->route('client.annonces.index')->with('success', 'Annonce supprimée.');
+        }
+
+        
+
+    public function confirmDelivery(Request $request, Annonce $annonce)
 {
-    $user = Auth::user();
-    $amount = $annonce->price;
-
-    if ($user->wallet->balance < $amount) {
-        return back()->with('error', 'Solde insuffisant.');
-    }
-
-    // Débiter le client
-    $user->wallet->balance -= $amount;
-    $user->wallet->save();
-
-    // Bloquer l’argent chez le livreur ou prestataire
-    $prestataire = $annonce->acceptedBy; // → à adapter selon ta logique
-    $prestataire->wallet->blocked_balance += $amount;
-    $prestataire->wallet->save();
-
-    // Marquer l’annonce comme payée
-    $annonce->is_paid = true;
-    $annonce->save();
-
-    // Enregistrer la transaction
-    $prestataire->wallet->transactions()->create([
-        'type' => 'service',
-        'amount' => $amount,
-        'status' => 'pending',
-    ]);
-
-    return back()->with('success', 'Paiement effectué. Argent bloqué jusqu’à la confirmation.');
-}
-
-public function confirmDelivery(Request $request, Annonce $annonce)
-{
-   try {
-    Log::info('==> Début paiement prestataire');
-    app(\App\Services\PaymentService::class)->payProviders($annonce);
-
-    $annonce->status = 'complétée';
-    $annonce->save();
-
-    return redirect()->route('client.annonces.show', $annonce)
-        ->with('success', 'Service marqué comme complété et prestataire payé.');
-    } catch (\Exception $e) {
-    Log::error('Erreur confirmDelivery : ' . $e->getMessage());
-
-    if (str_contains($e->getMessage(), 'Solde insuffisant')) {
-        return back()->with('insufficient_balance', true);
-    }
-
-    return back()->with('error', 'Une erreur est survenue lors du paiement.');
-    }
     $client = auth()->user();
-    $annonce->load('provider');
 
+    // Vérifie que l'utilisateur est bien le client de l'annonce
     if (
         $annonce->user_id !== $client->id ||
-        $annonce->status !== 'en attente de paiement' ||
+        $annonce->status !== 'prise en charge' ||
         !$annonce->provider
     ) {
         abort(403, 'Action non autorisée.');
@@ -269,8 +223,10 @@ public function confirmDelivery(Request $request, Annonce $annonce)
     try {
         Log::info('==> Début paiement prestataire');
 
-        app(\App\Services\PaymentService::class)->payProviders($annonce);
+        // Paiement immédiat
+        $this->paymentService->payProviders($annonce);
 
+        // Met à jour le statut de l'annonce
         $annonce->status = 'complétée';
         $annonce->save();
 
@@ -280,22 +236,160 @@ public function confirmDelivery(Request $request, Annonce $annonce)
             ->with('success', 'Service marqué comme complété et prestataire payé.');
     } catch (\Exception $e) {
         Log::error('Erreur confirmDelivery : ' . $e->getMessage());
-        return back()->with('error', $e->getMessage());
+
+        if (str_contains($e->getMessage(), 'Solde insuffisant')) {
+            return back()->with('insufficient_balance', true);
+        }
+
+        return back()->with('error', 'Une erreur est survenue lors du paiement.');
     }
 }
 
-    public function payDelivery($id)
+
+        public function payDelivery($id)
+    {
+        $annonce = \App\Models\Annonce::findOrFail($id);
+
+        if ($annonce->status !== 'en attente de paiement') {
+            return back()->with('error', 'Cette annonce n’est pas en attente de paiement.');
+        }
+
+        $annonce->status = 'complétée';
+        $annonce->save();
+
+        return back()->with('success', 'Service payé. Mission complétée.');
+    }
+
+    public function validateTransportAnnonce(Request $request, Annonce $annonce)
+    {
+        $client = auth()->user();
+
+        if (
+            $annonce->user_id !== $client->id ||
+            $annonce->type !== 'transport'
+        ) {
+            abort(403, 'Action non autorisée.');
+        }
+
+        try {
+            // Accepter tous les segments en attente
+            $annonce->segments()->where('status', 'en attente')->update([
+                'status' => 'accepté',
+            ]);
+
+            // Changer le statut de l'annonce
+            $annonce->status = 'prise en charge';
+            $annonce->save();
+
+            return redirect()->route('client.annonces.show', $annonce)
+                ->with('success', 'Segments validés. La livraison est maintenant en cours.');
+        } catch (\Exception $e) {
+            \Log::error('Erreur validateTransportAnnonce : ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la validation des segments.');
+        }
+    }
+
+    public function marquerEnAttenteDePaiement(Annonce $annonce)
+    {
+        $user = auth()->user();
+
+        if (!$user->isDelivery()) {
+            abort(403);
+        }
+
+        // Vérifie que le livreur est bien lié à cette annonce via au moins un segment
+        $livreurId = $user->id;
+        $livreurSegments = $annonce->segments()->where('delivery_id', $livreurId)->count();
+
+        if ($livreurSegments === 0) {
+            return back()->with('error', 'Vous ne participez pas à cette annonce.');
+        }
+
+        // Changement de statut
+        $annonce->status = 'en attente de paiement';
+        $annonce->save();
+
+        return back()->with('success', 'Annonce marquée en attente de paiement.');
+    }
+
+
+    public function confirmTransportDelivery(Annonce $annonce)
 {
-    $annonce = \App\Models\Annonce::findOrFail($id);
+    Log::info('[ Début] confirmTransportDelivery pour annonce ID: ' . $annonce->id);
 
-    if ($annonce->status !== 'en attente de paiement') {
-        return back()->with('error', 'Cette annonce n’est pas en attente de paiement.');
+    // Étape 1 : Auth
+    if (auth()->id() !== $annonce->user_id) {
+        Log::warning('[ Refusé] Mauvais utilisateur pour confirmer annonce ID: ' . $annonce->id);
+        abort(403, 'Vous n’êtes pas autorisé à confirmer cette annonce.');
     }
 
-    $annonce->status = 'complétée';
-    $annonce->save();
+    // Étape 2 : Vérification statut/type
+    if ($annonce->type !== 'transport' || $annonce->status !== 'en attente de paiement') {
+        Log::warning('[ Refusé] Mauvais statut ou type pour annonce ID: ' . $annonce->id);
+        return back()->with('error', "L’annonce n’est pas prête pour être confirmée.");
+    }
 
-    return back()->with('success', 'Service payé. Mission complétée.');
+    // Étape 3 : Chargement des segments
+    $annonce->load('segments');
+    Log::info('[ Segments chargés] Nb segments: ' . $annonce->segments->count());
+
+    // Étape 4 : Vérification des statuts segments
+    if ($annonce->segments->isEmpty() || !$annonce->segments->every(fn($s) => $s->status === 'en attente de paiement')) {
+        Log::warning('[ Bloqué] Tous les segments ne sont pas en attente de paiement');
+        return back()->with('error', "Tous les segments doivent être en attente de paiement pour confirmer.");
+    }
+
+    try {
+        // Étape 5 : Paiement via service
+        Log::info('[ Paiement] Lancement de processSegmentedPayment...');
+        app(PaymentService::class)->processSegmentedPayment($annonce);
+        Log::info('[ Paiement OK]');
+
+        // Étape 6 : Marquer les segments comme "accepté"
+        foreach ($annonce->segments as $segment) {
+            $segment->status = 'accepté';
+            $segment->save();
+        }
+        Log::info('[ Segments acceptés]');
+
+        // Étape 7 : Mise à jour annonce
+        $annonce->status = 'complétée';
+        $annonce->is_paid = true;
+        $annonce->is_confirmed = true;
+        $annonce->save();
+        Log::info('[ Annonce mise à jour] complétée + payée');
+
+        return redirect()->route('client.annonces.show', $annonce)
+            ->with('success', "Paiement effectué et livraison confirmée.");
+    } catch (\Exception $e) {
+        Log::error('[ Exception] ' . $e->getMessage());
+        return back()->with('error', "Erreur : " . $e->getMessage());
+    }
 }
 
+public function markAsAwaitingPayment(Annonce $annonce)
+{
+    $user = auth()->user();
+
+    if (!$user->isClient() || $annonce->user_id !== $user->id || $annonce->type !== 'transport') {
+        abort(403, 'Action non autorisée.');
+    }
+
+    try {
+        \Log::info("[ Client] Changement vers 'en attente de paiement' pour annonce ID: " . $annonce->id);
+
+        // Mise à jour des segments
+        $annonce->segments()->update(['status' => 'en attente de paiement']);
+
+        // Mise à jour de l’annonce
+        $annonce->status = 'en attente de paiement';
+        $annonce->save();
+
+        return redirect()->route('client.annonces.show', $annonce)
+            ->with('success', 'Annonce et segments passés en attente de paiement.');
+    } catch (\Exception $e) {
+        \Log::error("[ Erreur markAsAwaitingPayment] " . $e->getMessage());
+        return back()->with('error', 'Erreur lors de la mise à jour.');
+    }
 }
+    }
