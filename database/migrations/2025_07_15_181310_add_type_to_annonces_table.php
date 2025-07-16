@@ -4,16 +4,19 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-    public function up(): void {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('consentement_pdf')->nullable()->after('kbis');
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('annonces', function (Blueprint $table) {
+            $table->string('type')->nullable()->after('photo');
         });
     }
 
-    public function down(): void {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('consentement_pdf');
+    public function down(): void
+    {
+        Schema::table('annonces', function (Blueprint $table) {
+            $table->dropColumn('type');
         });
     }
 };

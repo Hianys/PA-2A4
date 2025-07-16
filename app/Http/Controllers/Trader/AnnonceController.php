@@ -82,7 +82,7 @@ class AnnonceController extends Controller
         $annonce = new Annonce($validated);
         $annonce->user_id = $user->id;
         $annonce->type = 'transport';
-        $annonce->status = 'published';
+        $annonce->status = 'publiée';
         $annonce->from_city = $user->adresse; // adresse du commerçant
 
         if ($request->hasFile('kbis')) {
@@ -158,7 +158,7 @@ class AnnonceController extends Controller
             return redirect()->back()->with('error', 'La mission n\'est pas en cours.');
         }
 
-        $annonce->status = 'completed';
+        $annonce->status = 'complétée';
         $annonce->save();
 
         return redirect()->route('commercant.annonces.index')->with('success', 'Mission marquée comme complétée.');

@@ -26,7 +26,7 @@
                 <h3 class="text-xl font-semibold mb-2">@lang("Statistics")</h3>
                 <div class="flex flex-wrap gap-8">
                     <div>
-                        <div class="text-2xl font-bold text-indigo-600">{{ $annonces->where('status', 'published')->count() }}</div>
+                        <div class="text-2xl font-bold text-indigo-600">{{ $annonces->where('status', 'publiée')->count() }}</div>
                         <div>@lang("Open")</div>
                     </div>
                     <div>
@@ -34,7 +34,7 @@
                         <div>@lang("Accepted")</div>
                     </div>
                     <div>
-                        <div class="text-2xl font-bold text-green-600">{{ $annonces->where('status', 'completed')->count() }}</div>
+                        <div class="text-2xl font-bold text-green-600">{{ $annonces->where('status', 'complétée')->count() }}</div>
                         <div>@lang("Completed")</div>
                     </div>
                 </div>

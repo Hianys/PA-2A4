@@ -63,7 +63,7 @@ class AnnonceController extends Controller
             'weight' => 'nullable|numeric',
             'volume' => 'nullable|numeric',
             'constraints' => 'nullable|string',
-            'status' => 'nullable|in:published,taken,completed',
+            'status' => 'nullable|in:publiée,taken,completed',
             'from_latitude' => 'nullable|numeric',
             'from_longitude' => 'nullable|numeric',
             'to_latitude' => 'nullable|numeric',
@@ -74,7 +74,7 @@ class AnnonceController extends Controller
         $data = $validated;
         unset($data['photo']);
         $data['user_id'] = auth()->id();
-        $data['status'] = 'published';
+        $data['status'] = 'publiée';
 
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('uploads', 'public');
@@ -140,7 +140,7 @@ class AnnonceController extends Controller
             'weight' => 'nullable|numeric',
             'volume' => 'nullable|numeric',
             'constraints' => 'nullable|string',
-            'status' => 'nullable|in:published,taken,completed',
+            'status' => 'nullable|in:publiée,taken,completed',
             'from_latitude' => 'nullable|numeric',
             'from_longitude' => 'nullable|numeric',
             'to_latitude' => 'nullable|numeric',

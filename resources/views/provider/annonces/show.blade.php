@@ -41,7 +41,7 @@
             @endif
 
             {{-- Affiche le bouton pour accepter l’annonce si elle est encore disponible --}}
-            @if ($annonce->status === 'published')
+            @if ($annonce->status === 'publiée')
                 <form action="{{ route('provider.annonces.accept', $annonce) }}" method="POST">
                     @csrf
                     <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
