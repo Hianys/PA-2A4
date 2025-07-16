@@ -63,7 +63,7 @@ class AnnonceController extends Controller
             'weight' => 'nullable|numeric',
             'volume' => 'nullable|numeric',
             'constraints' => 'nullable|string',
-            'status' => 'nullable|in:publiée,taken,completed',
+            'status' => 'nullable|in:publiée,accepté,refusé',
             'from_latitude' => 'nullable|numeric',
             'from_longitude' => 'nullable|numeric',
             'to_latitude' => 'nullable|numeric',

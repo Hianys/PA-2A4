@@ -43,10 +43,5 @@
             @lang('log in')
             </button>
         </div>
-        <script>
-    document.querySelector('form').addEventListener('submit', () => {
-        alert('Form submitted !');
-    });
-</script>
     </form>
 </x-guest-layout>
