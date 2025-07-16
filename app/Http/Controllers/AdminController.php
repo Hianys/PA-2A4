@@ -212,6 +212,16 @@ class AdminController extends Controller
         return back()->with('success', 'Annonce archivée.');
     }
 
+    public function annoncesRestore($id)
+    {
+        $annonce = \App\Models\Annonce::findOrFail($id);
+        $annonce->status = 'publiée';
+        $annonce->save();
+
+        return redirect()->route('admin.annonces.show', $annonce->id)
+            ->with('success', 'Annonce restaurée.');
+    }
+
     public function annoncesDelete($id)
     {
         $annonce = \App\Models\Annonce::findOrFail($id);

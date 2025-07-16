@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\WalletController;
 use App\Http\Controllers\Client\AnnonceController as ClientAnnonceController;
 use App\Http\Controllers\Delivery\AnnonceController as DeliveryAnnonceController;
 use App\Http\Controllers\ProfileController;
@@ -55,6 +56,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/annonces/{annonce}/edit', [AdminController::class, 'annoncesEdit'])->name('admin.annonces.edit');
     Route::get('/admin/annonces/{annonce}/update', [AdminController::class, 'annoncesUpdate'])->name('admin.annonces.update');
     Route::patch('/admin/annonces/{annonce}/archive', [AdminController::class, 'annoncesArchive'])->name('admin.annonces.archive');
+    Route::patch('/admin/annonces/{annonce}/restore', [AdminController::class, 'annoncesRestore'])->name('admin.annonces.restore');
     Route::delete('/admin/annonces/{annonce}', [AdminController::class, 'annoncesDelete'])->name('admin.annonces.delete');
 
     Route::get('/admin/segments/{segment}', [AdminController::class, 'segmentsShow'])->name('admin.segments.show');
@@ -69,7 +71,7 @@ Route::middleware(['auth'])->group(function () {
 
 //Gestion des annonces pour les clients
 Route::middleware(['auth'])->group(function () {
-    Route::get('/client/annonces', [ClientAnnonceController::class, 'index'])->name('client.annonces.index'); 
+    Route::get('/client/annonces', [ClientAnnonceController::class, 'index'])->name('client.annonces.index');
     Route::get('/client/annonces/create', [ClientAnnonceController::class, 'create'])->name('client.annonces.create');
     Route::get('/client/annonces/{annonce}', [ClientAnnonceController::class, 'show'])->name('client.annonces.show');
     Route::get('/client/annonces/{annonce}/edit', [ClientAnnonceController::class, 'edit'])->name('client.annonces.edit');
@@ -128,14 +130,16 @@ Route::get('/document/{filename}', function ($filename) {
     return response($file, 200)->header('Content-Type', $type);
 })->middleware('auth')->name('documents.show');
 
-
-use App\Http\Controllers\WalletController;
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
     Route::post('/wallet/checkout', [WalletController::class, 'checkout'])->name('wallet.checkout');
     Route::get('/wallet/success', [WalletController::class, 'success'])->name('wallet.success');
-});
+    Route::post('/wallet/withdraw', [WalletController::class, 'withdraw'])->name('wallet.withdraw');
 
+
+    Route::post('/delivery/{delivery}/pay', [ClientAnnonceController::class, 'payDelivery'])->name('delivery.pay');
+    Route::post('/delivery/{delivery}/confirm', [ClientAnnonceController::class, 'confirmDelivery'])->name('delivery.confirm.client');
+    Route::post('/delivery/{delivery}/confirm-delivery', [DeliveryAnnonceController::class, 'confirmDelivery'])->name('delivery.confirm.delivery');
+});
 
 require __DIR__.'/auth.php';

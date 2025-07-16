@@ -66,6 +66,33 @@
                     </button>
                 </form>
             </div>
+
+            @if ($annonce->status === 'en attente de paiement')
+                <div class="mt-6">
+                    <form method="POST" action="{{ route('delivery.pay', $annonce->id) }}">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                        >
+                            Payer la livraison
+                        </button>
+                    </form>
+                </div>
+            @elseif ($annonce->status === 'bloqué')
+                <div class="mt-6">
+                    <form method="POST" action="{{ route('delivery.confirm', $annonce->id) }}">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
+                            Confirmer la livraison
+                        </button>
+                    </form>
+                </div>
+            @endif
+
         </div>
 
         {{-- Carte --}}

@@ -19,31 +19,69 @@
                 @if ($annonce->user)
                     <a href="{{ route('admin.users.show', $annonce->user->id) }}"
                        class="text-indigo-600 hover:underline">
-                        {{ $annonce->user->name }} </a>({{ ucfirst($annonce->user->role) }})
+                        {{ $annonce->user->name }}
+                    </a> ({{ ucfirst($annonce->user->role) }})
                 @else
                     N/A
                 @endif
             </p>
             <p><strong>Date souhaitée :</strong> {{ $annonce->preferred_date }}</p>
             <p><strong>Description :</strong> {{ $annonce->description }}</p>
+            @if ($annonce->user->role === 'client' && $annonce->type === 'transport')
+                <div class="flex gap-4 flex-wrap">
+                <a href="{{ route('client.annonces.show', $annonce->id) }}" class="bg-red-200 hover:bg-red-300 text-white px-4 py-2 rounded">
+                    Voir en tant que client
+                </a>
+                <a href="{{ route('delivery.annonces.show', $annonce->id) }}" class="bg-emerald-400 hover:bg-emerald-500 text-white px-4 py-2 rounded">
+                    Voir en tant que livreur
+                </a>
+                </div>
+            {{--@elseif($annonce->user->role === 'client' && $annonce->type === 'service')
+                <a href="{{ route('client.annonces.show', $annonce->id) }}" class="bg-emerald-100 hover:bg-emerald-200 text-white px-4 py-2 rounded">
+                    Voir en tant que client
+                </a>
+                <a href="{{ route('provider.annonces.show', $annonce->id) }}" class="bg-emerald-400 hover:bg-emerald-500 text-white px-4 py-2 rounded">
+                    Voir en tant que prestataire
+                </a>
+            @elseif($annonce->user->role === 'commercant' && $annonce->type === 'service')
+                <a href="{{ route('trader.annonces.show', $annonce->id) }}" class="bg-emerald-100 hover:bg-emerald-200 text-white px-4 py-2 rounded">
+                    Voir en tant que commerçant
+                </a>
+                <a href="{{ route('delivery.annonces.show', $annonce->id) }}" class="bg-emerald-400 hover:bg-emerald-500 text-white px-4 py-2 rounded">
+                    Voir en tant que livreur
+                </a>
+                --}}
+            @endif
         </div>
 
         {{-- Actions --}}
-        <div class="flex gap-4">
+        <div class="flex gap-4 flex-wrap">
             <a href="{{ route('admin.annonces.edit', $annonce->id) }}"
-               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">
+               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1 rounded">
                 Modifier
             </a>
 
-            <form action="{{ route('admin.annonces.archive', $annonce->id) }}"
-                  method="POST">
-                @csrf
-                @method('PATCH')
-                <button type="submit"
-                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
-                    Archiver
-                </button>
-            </form>
+            @if($annonce->status !== 'archivée')
+                <form action="{{ route('admin.annonces.archive', $annonce->id) }}"
+                      method="POST">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit"
+                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
+                        Archiver
+                    </button>
+                </form>
+            @else
+                <form action="{{ route('admin.annonces.restore', $annonce->id) }}"
+                      method="POST">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit"
+                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                        Restaurer
+                    </button>
+                </form>
+            @endif
 
             <form action="{{ route('admin.annonces.delete', $annonce->id) }}"
                   method="POST"
@@ -84,7 +122,6 @@
                                 {{ ucfirst($segment->status) }}
                             </span>
                         </li>
-
                     @endforeach
                 </ul>
             </div>
