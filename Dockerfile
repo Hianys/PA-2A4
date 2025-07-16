@@ -38,12 +38,11 @@ WORKDIR /var/www/html
 
 # Installation des dépendances système et extensions PHP nécessaires
 RUN apt-get update && apt-get install -y unzip curl libzip-dev && \
-    docker-php-ext-install pdo pdo_mysql && \
+    docker-php-ext-install pdo pdo_mysql bcmath && \
     a2enmod rewrite
 
 # Installer Composer dans le conteneur dev
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
 
 # Copie l'intégralité du projet dans le conteneur
 COPY . .

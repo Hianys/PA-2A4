@@ -64,21 +64,29 @@ class AnnonceController extends Controller
             'volume' => 'nullable|numeric',
             'constraints' => 'nullable|string',
             'status' => 'nullable|in:published,taken,completed',
+            'from_latitude' => 'nullable|numeric',
+            'from_longitude' => 'nullable|numeric',
+            'to_latitude' => 'nullable|numeric',
+            'to_longitude' => 'nullable|numeric',
             'photo' => 'nullable|file|image|max:2048',
         ]);
 
         $data = $validated;
+        unset($data['photo']);
         $data['user_id'] = auth()->id();
-        $data['status'] = 'publiée';
+        $data['status'] = 'published';
 
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('uploads', 'public');
             $data['photo'] = $path;
+        }else {
+            $data['photo'] = null;
         }
 
         Annonce::create($data);
 
-        return redirect()->route('client.annonces.index')->with('success', 'Annonce créée avec succès.');
+        return redirect()->route('client.annonces.index')
+            ->with('success', 'Annonce créée avec succès.');
     }
 
     public function show(Annonce $annonce)
@@ -132,20 +140,32 @@ class AnnonceController extends Controller
             'weight' => 'nullable|numeric',
             'volume' => 'nullable|numeric',
             'constraints' => 'nullable|string',
+            'status' => 'nullable|in:published,taken,completed',
+            'from_latitude' => 'nullable|numeric',
+            'from_longitude' => 'nullable|numeric',
+            'to_latitude' => 'nullable|numeric',
+            'to_longitude' => 'nullable|numeric',
             'photo' => 'nullable|file|image|max:2048',
         ]);
 
         $data = $validated;
+        $data['user_id'] = auth()->id();
+
+        unset($data['photo']);
 
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('uploads', 'public');
             $data['photo'] = $path;
+        } else {
+            $data['photo'] = $annonce->photo; // conserve l'ancienne si pas de nouvelle
         }
 
         $annonce->update($data);
 
-        return redirect()->route('client.annonces.show', $annonce)->with('success', 'Annonce mise à jour.');
+        return redirect()->route('client.annonces.show', $annonce)
+            ->with('success', 'Annonce mise à jour avec succès.');
     }
+
 
     public function destroy(Annonce $annonce)
     {

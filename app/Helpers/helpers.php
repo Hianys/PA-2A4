@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 
 function dashboard_route_for(string $role): string
 {
+        \Log::info('Redirection dashboard pour rôle', ['role' => $role]);
+
     return match ($role) {
         'client' => route('client.dashboard'),
         'livreur' => route('delivery.dashboard'),

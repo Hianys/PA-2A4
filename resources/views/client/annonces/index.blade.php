@@ -1,12 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="text-xl font-semibold">Mes annonces</h2>
-            <a href="{{ route('client.annonces.create') }}"
-               class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                Créer une annonce
-            </a>
-        </div>
+        <h2 class="text-xl font-semibold">@lang("My Announcements")</h2>
     </x-slot>
 
     <div class="max-w-3xl mx-auto py-6 space-y-8">
@@ -14,14 +8,81 @@
         {{-- Retour --}}
         <div>
             <a href="{{ route('client.dashboard') }}" class="text-indigo-600 hover:underline text-sm">
-                ← Retour au tableau de bord
+                ← @lang("Back to dashboard")
             </a>
+        </div>
+
+        {{-- Formulaire --}}
+        @if (session('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
+                {{ session('error') }}
+            </div>
+        @endif
+        
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">@lang("New Announcement")</h3>
+
+            <form method="POST" action="{{ route('client.annonces.store') }}" class="space-y-4 relative">
+                @csrf
+
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700">@lang("Title")</label>
+                    <x-text-input id="title" name="title" class="mt-1" required />
+                </div>
+
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700">@lang("Description")</label>
+                    <x-textarea id="description" name="description" rows="4" class="mt-1" />
+                </div>
+
+                <div>
+                    <label for="preferred_date" class="block text-sm font-medium text-gray-700">@lang("Preferred date")</label>
+                    <x-text-input type="date" id="preferred_date" name="preferred_date" class="mt-1" />
+                    <x-input-error :messages="$errors->get('preferred_date')" class="mt-1" />
+                </div>
+
+                <div>
+                    <label for="type" class="block text-sm font-medium text-gray-700">@lang("Type")</label>
+                    <select name="type" id="type" onchange="toggleFields()" class="mt-1 block w-full rounded border-gray-300">
+                        <option value="transport">@lang("Transport")</option>
+                        <option value="service">@lang("Service")</option>
+                    </select>
+                </div>
+
+                {{-- Champs spécifiques au transport --}}
+                <div id="transport-fields" class="space-y-4">
+                    <div class="relative">
+                        <label for="from_city" class="block text-sm font-medium text-gray-700">@lang("Departure city")</label>
+                        <x-text-input id="from_city" name="from_city" class="mt-1" autocomplete="off" />
+                        <x-input-error :messages="$errors->get('from_city')" class="mt-1" />
+                        <ul id="from_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
+                    </div>
+
+                    <div class="relative">
+                        <label for="to_city" class="block text-sm font-medium text-gray-700">@lang("Arrival city")</label>
+                        <x-text-input id="to_city" name="to_city" class="mt-1" autocomplete="off" />
+                        <x-input-error :messages="$errors->get('to_city')" class="mt-1" />
+
+                        <ul id="to_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
+                    </div>
+                </div>
+
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                    @lang("Create Announcement")
+                </button>
+            </form>
         </div>
 
         {{-- Liste des annonces --}}
         @if ($annonces->count())
             <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-lg font-semibold mb-4">Vos annonces</h3>
+                <h3 class="text-lg font-semibold mb-4">@lang("Your Announcements")</h3>
                 <ul class="space-y-4">
                     @foreach ($annonces as $annonce)
                         <li class="border rounded p-4">
@@ -42,7 +103,24 @@
                                         <div><strong>Poids :</strong> {{ $annonce->weight }} kg</div>
                                         <div><strong>Volume :</strong> {{ $annonce->volume }} m³</div>
                                         <div><strong>Contraintes :</strong> {{ $annonce->constraints }}</div>
-                                        <div><strong>Statut :</strong> {{ $annonce->status }}</div>
+                                        <div><strong>Statut :</strong>
+                                            @if ($annonce->status === 'published')                                          
+                                                <span class="text-yellow-600">En attente</span>
+                                            @elseif ($annonce->status === 'taken')
+                                                <span class="text-blue-600">Acceptée par {{ $annonce->provider->name ?? 'prestataire inconnu' }}</span>
+                                            @elseif ($annonce->status === 'completed')
+                                                <span class="text-green-600">Complétée</span>
+                                            @endif
+                                        </div>
+                                        @if ($annonce->status === 'taken')
+                                            <form action="{{ route('client.annonces.complete', $annonce) }}" method="POST" class="mt-2">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+                                                    Confirmer que la mission est terminée
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="text-sm text-right text-gray-500">
@@ -63,7 +141,7 @@
                 </ul>
             </div>
         @else
-            <p class="text-center text-gray-500">Aucune annonce pour le moment.</p>
+            <p class="text-center text-gray-500">@lang("No announcements available at the moment.")</p>
         @endif
     </div>
 

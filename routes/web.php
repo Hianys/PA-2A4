@@ -3,11 +3,23 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\Client\AnnonceController as ClientAnnonceController;
-use App\Http\Controllers\Delivery\AnnonceController as DeliveryAnnonceController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Trader\AnnonceController as TraderAnnonceController;
+use App\Http\Controllers\Delivery\AnnonceController as DeliveryAnnonceController;
+use App\Http\Controllers\Provider\AnnonceController as ProviderAnnonceController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransportSegmentController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+
+
+Route::get('/changeLocale/{locale}', function (string $locale) {
+    if (in_array($locale, ['en', 'es', 'fr', 'ar'])) {
+        session()->put('locale', $locale);
+     }
+    return redirect()->back();
+});
 
 //Route de la page d'accueil
 Route::get('/', function () {
@@ -25,13 +37,11 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboards.delivery');
     })->name('delivery.dashboard');
 
-    Route::get('/commercant/dashboard', function () {
-        return view('dashboards.trader');
-    })->name('trader.dashboard');
+    Route::get('/commercant/dashboard', [TraderAnnonceController::class, 'dashboard'])
+        ->name('trader.dashboard');
 
-    Route::get('/prestataire/dashboard', function () {
-        return view('dashboards.provider');
-    })->name('provider.dashboard');
+    Route::get('/prestataire/dashboard', [ProviderAnnonceController::class, 'dashboard'])
+        ->name('provider.dashboard');
 
     Route::get('/admin/dashboard/', [AdminController::class, 'index'])
         ->name('admin.dashboard');
@@ -102,6 +112,18 @@ Route::middleware('auth')->group(function () {
     Route::get('commercant/annonces/{annonce}/edit', [TraderAnnonceController::class, 'edit'])->name('commercant.annonces.edit');
     Route::put('commercant/annonces/{annonce}', [TraderAnnonceController::class, 'update'])->name('commercant.annonces.update');
     Route::delete('commercant/annonces/{annonce}', [TraderAnnonceController::class, 'destroy'])->name('commercant.annonces.destroy');
+    Route::patch('commercant/annonces/{annonce}/complete', [TraderAnnonceController::class, 'markCompleted'])->name('commercant.annonces.complete');
+    Route::get('/commercant/dashboard', [TraderAnnonceController::class, 'dashboard'])->name('trader.dashboard');
+
+
+    // Profil commerçant
+    Route::get('/commercant/profil', [TraderAnnonceController::class, 'editProfile'])->name('commercant.profile.edit');
+    Route::post('/commercant/profil', [TraderAnnonceController::class, 'updateProfile'])->name('commercant.profile.update');
+
+    Route::post('/commercant/consentement', [TraderAnnonceController::class, 'generateConsentPdf'])->name('commercant.consentement.submit');
+    Route::get('/commercant/consentement', [TraderAnnonceController::class, 'showConsentForm'])->name('commercant.consentement.form');
+    Route::post('/commercant/consentement/valider', [TraderAnnonceController::class, 'validerConsentement'])->name('commercant.consentement.valider');
+    Route::post('/commercant/consentement/pdf', [TraderAnnonceController::class, 'telechargerPdf'])->name('commercant.consentement.pdf');
 });
 
 //Actions dans le profil de l'utilisateur
@@ -111,6 +133,38 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+//Gestion des annonces pour les prestataireuhs
+Route::middleware(['auth'])->group(function () {
+    Route::get('/prestataire/annonces', [ProviderAnnonceController::class, 'index'])->name('provider.annonces.index');
+    Route::get('/prestataire/annonces/{annonce}', [ProviderAnnonceController::class, 'show'])->name('provider.annonces.show');
+    Route::post('/prestataire/annonces/{annonce}/accept', [ProviderAnnonceController::class, 'accept'])->name('provider.annonces.accept');
+    Route::patch('/prestataire/annonces/{annonce}/complete', [ProviderAnnonceController::class, 'markCompleted'])->name('provider.annonces.complete');
+    Route::get('/prestataire/missions', [ProviderAnnonceController::class, 'missions'])->name('provider.annonces.missions');
+});
+
+Route::get('/upload', function () {
+    return view('upload');
+})->name('file.upload.form');
+
+Route::post('/upload', function (Request $request) {
+    if ($request->hasFile('fichier')) {
+        $file = $request->file('fichier');
+
+        if (!$file->isValid()) {
+            return back()->with('error', 'Le fichier est invalide.');
+        }
+
+        $path = $file->store('uploads', 'public'); // => storage/app/public/uploads/...
+
+        return redirect()->route('file.upload.form')->with('success', 'Fichier uploadé dans : ' . $path);
+    }
+
+    return back()->with('error', 'Aucun fichier sélectionné.');
+})->name('file.upload');
+
+Route::get('/test-auth', function () {
+    return Auth::check() ? 'Connecté en tant que : ' . Auth::user()->email : 'Non connecté';
+});
 Route::get('/api/ors/route', [\App\Http\Controllers\MapController::class, 'routeBetweenCities']);
 
 

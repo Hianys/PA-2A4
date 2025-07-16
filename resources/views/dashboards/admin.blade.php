@@ -1,8 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold">Tableau de bord Administrateur</h2>
+        <h2 class="text-xl font-semibold">@lang("Admin Dashboard")</h2>
     </x-slot>
 
+    <x-admin-content>
+        <h2 class="text-2xl font-semibold mb-6">@lang("User List")</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <a href="{{ route('admin.users.index') }}" class="bg-white shadow p-6 rounded hover:bg-gray-50">
             <h3 class="text-lg font-semibold mb-2">Utilisateurs</h3>

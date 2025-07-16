@@ -1,11 +1,12 @@
 <section>
     <header>
         <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-            {{ __('Modifier mon mot de passe') }}
+            @lang("update your password")
+            
         </h2>
 
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {{ __('Assurez-vous que votre compte utilise un mot de passe long et aléatoire pour rester sécurisé.') }}
+            @lang("ensure your account is using a long, random password to stay secure.")
         </p>
     </header>
 
@@ -32,7 +33,7 @@
         </div>
 
         <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Enregistrer') }}</x-primary-button>
+            <x-primary-button>@lang("save")</x-primary-button>
 
             @if (session('status') === 'password-updated')
                 <p
@@ -41,7 +42,7 @@
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
                     class="text-sm text-gray-600 dark:text-gray-400"
-                >{{ __('Enregistré.') }}</p>
+                >@lang("saved.")</p>
             @endif
         </div>
     </form>

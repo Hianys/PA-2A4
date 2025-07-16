@@ -17,7 +17,7 @@ return new class extends Migration
             $table->decimal('volume', 8, 2)->nullable();
             $table->string('photo')->nullable();
             $table->text('constraints')->nullable();
-            $table->enum('status', ['publiee', 'prise en charge', 'completee'])->default('publiee');
+            $table->enum('status', ['publiée', 'prise en charge', 'complétée'])->default('publiée');
         });
 
 

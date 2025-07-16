@@ -28,7 +28,10 @@ class User extends Authenticatable
         'role',
         'identity_document',
         'driver_license',
-        'documents_verified'
+        'documents_verified',
+        'enseigne',
+        'adresse',
+        'kbis_path',
     ];
 
     /**
@@ -85,6 +88,8 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+
     public function segmentsTaken()
     {
         return $this->hasMany(TransportSegment::class, 'delivery_id');

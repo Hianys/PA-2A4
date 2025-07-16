@@ -20,15 +20,15 @@
                 <!-- Si l'utilisateur est connecté -->
                 <a href="{{ dashboard_route_for(Auth::user()->role) }}"
                    class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow">
-                    Accéder à mon espace
+                     @lang("access my space")
                 </a>
             @else
                 <!-- Sinon, boutons login / register -->
                 <a href="{{ route('login') }}" class="px-6 py-3 bg-white text-indigo-600 hover:bg-indigo-100 rounded-lg border border-indigo-600 shadow">
-                    Se connecter
+                    @lang("login")
                 </a>
                 <a href="{{ route('register') }}" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow">
-                    S’inscrire
+                    @lang("register")
                 </a>
             @endauth
         </div>
@@ -37,15 +37,15 @@
 
 
 <section class="py-24 px-6 text-center">
-    <h2 class="text-4xl md:text-5xl font-bold mb-4">Réinventons la livraison locale 🌍</h2>
+    <h2 class="text-4xl md:text-5xl font-bold mb-4">@lang("reinventing local delivery") 🌍</h2>
     <p class="text-lg md:text-xl max-w-2xl mx-auto text-gray-600 mb-8">
-        Ecodéli connecte commerçants, livreurs, prestataires et clients dans une démarche écoresponsable et locale.
+        @lang("ecodeli connects merchants, delivery people, service providers, and customers in an eco-responsible and local approach.")
     </p>
     @auth
 
     @else
         <a href="{{ route('register') }}" class="inline-block px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-lg font-medium shadow">
-            Créer un compte
+            @lang("create an account")
         </a>
     @endauth
 </section>

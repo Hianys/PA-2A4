@@ -41,23 +41,21 @@
                         <div class="flex justify-between">
                             <div>
                                 <p class="text-sm text-gray-500">
-                                    Annonce :
+                                    @lang('Announce') :
                                     <a href="{{ route('delivery.annonces.show', $segment->annonce_id) }}"
                                        class="text-indigo-600 hover:underline">
-                                        {{ $segment->annonce->title ?? 'Annonce supprimée' }}
+                                        {{ $segment->annonce->title ?? @lang('deleted announcement') }}
                                     </a>
                                 </p>
                                 <p class="font-semibold text-lg">
                                     {{ $segment->from_city }} → {{ $segment->to_city }}
                                 </p>
                                 <p class="text-sm text-gray-600 mt-1">
-                                    Date souhaitée :
-                                    {{ \Carbon\Carbon::parse($segment->annonce->preferred_date)->format('d/m/Y') }}
-                                </p>
-                                <p class="text-sm text-gray-600 mt-1">
                                     Statut :
                                     <span class="font-semibold">{{ ucfirst($segment->status) }}</span>
+                                    @lang('Preferred date') : {{ \Carbon\Carbon::parse($segment->annonce->preferred_date)->format('d/m/Y') }}
                                 </p>
+
                             </div>
 
                             <div class="self-center space-x-2">
@@ -67,7 +65,7 @@
                                         @method('PATCH')
                                         <input type="hidden" name="status" value="en cours">
                                         <button type="submit" class="text-xs bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
-                                            Commencer
+                                            @lang('Start')
                                         </button>
                                     </form>
                                 @elseif ($segment->status === 'en cours')
@@ -76,7 +74,7 @@
                                         @method('PATCH')
                                         <input type="hidden" name="status" value="livré">
                                         <button type="submit" class="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">
-                                            Marquer comme livré
+                                            @lang('Mark as delivered')
                                         </button>
                                     </form>
                                 @elseif ($segment->status === 'livre')
@@ -92,7 +90,7 @@
                 @endforeach
             </div>
         @else
-            <p class="text-center text-gray-500">Aucune livraison en cours.</p>
+            <p class="text-center text-gray-500">@lang('No ongoing deliveries.')</p>
         @endif
     </div>
 </x-app-layout>
