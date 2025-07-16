@@ -1,5 +1,6 @@
 <?php
 
+use \App\Http\Controllers\MapController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\Client\AnnonceController as ClientAnnonceController;
@@ -167,7 +168,7 @@ Route::post('/upload', function (Request $request) {
 Route::get('/test-auth', function () {
     return Auth::check() ? 'Connecté en tant que : ' . Auth::user()->email : 'Non connecté';
 });
-Route::get('/api/ors/route', [\App\Http\Controllers\MapController::class, 'routeBetweenCities']);
+Route::get('/api/ors/route', [MapController::class, 'routeBetweenCities']);
 
 
 Route::patch('/admin/users/{id}/validate-documents', [AdminController::class, 'validateDocuments'])->name('admin.validateDocuments');

@@ -162,4 +162,97 @@ class AnnonceController extends Controller
 
         return redirect()->route('commercant.annonces.index')->with('success', 'Mission marquée comme complétée.');
     }
+
+    //METHODES API APPLI MOBILE
+
+    public function indexPrestation(Request $request)
+    {
+        $userId = $request->input('user_id');
+
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'user_id manquant.'
+            ], 400);
+        }
+
+        $prestations = \App\Models\Annonce::where('type', 'prestation')
+            ->where('user_id', $userId)
+            ->get([
+                'id',
+                'title',
+                'preferred_date',
+                'price',
+                'status'
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'prestations' => $prestations
+        ]);
+    }
+
+    public function showPrestation($id, Request $request)
+    {
+        $userId = $request->input('user_id');
+
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'user_id manquant.'
+            ], 400);
+        }
+
+        $prestation = \App\Models\Annonce::where('id', $id)
+            ->where('type', 'prestation')
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$prestation) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Prestation non trouvée ou non autorisée.'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'prestation' => $prestation
+        ]);
+    }
+
+    public function validerPrestation($id, Request $request)
+    {
+        $userId = $request->input('user_id');
+
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'user_id manquant.'
+            ], 400);
+        }
+
+        $prestation = \App\Models\Annonce::where('id', $id)
+            ->where('type', 'prestation')
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$prestation) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Prestation non trouvée ou non autorisée.'
+            ], 404);
+        }
+
+        $prestation->status = 'complétée';
+        $prestation->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Prestation validée avec succès.',
+            'prestation' => $prestation
+        ]);
+    }
+
+
 };

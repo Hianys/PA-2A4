@@ -233,4 +233,99 @@ class AnnonceController extends Controller
                 ->with('error', 'Solde insuffisant. Veuillez recharger votre portefeuille.');
         }
     }
+
+    //METHODES API APPLI MOBILE
+
+    public function indexTransport(Request $request)
+    {
+        $userId = $request->input('user_id');
+
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'user_id manquant dans la requête.'
+            ], 400);
+        }
+
+        $annonces = \App\Models\Annonce::where('type', 'transport')
+            ->where('user_id', $userId)
+            ->get([
+                'id',
+                'title',
+                'from_city',
+                'to_city',
+                'preferred_date',
+                'price',
+                'status'
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'annonces' => $annonces
+        ]);
+    }
+
+    public function showTransport($id, Request $request)
+    {
+        $userId = $request->input('user_id');
+
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'user_id manquant dans la requête.'
+            ], 400);
+        }
+
+        $annonce = \App\Models\Annonce::where('id', $id)
+            ->where('user_id', $userId)
+            ->where('type', 'transport')
+            ->first();
+
+        if (!$annonce) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Annonce non trouvée ou non autorisée.'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'annonce' => $annonce
+        ]);
+    }
+
+    public function validerTransport($id, Request $request)
+    {
+        $userId = $request->input('user_id');
+
+        if (!$userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'user_id manquant dans la requête.'
+            ], 400);
+        }
+
+        $annonce = \App\Models\Annonce::where('id', $id)
+            ->where('user_id', $userId)
+            ->where('type', 'transport')
+            ->first();
+
+        if (!$annonce) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Annonce non trouvée ou non autorisée.'
+            ], 404);
+        }
+
+        // Mettre à jour le statut
+        $annonce->status = 'complétée';
+        $annonce->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Annonce validée avec succès.',
+            'annonce' => $annonce
+        ]);
+    }
+
 }
