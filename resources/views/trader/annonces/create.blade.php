@@ -26,22 +26,34 @@
                 </div>
 
                 <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700">@lang("Description")</label>
+                     <label for="description" class="block text-sm font-medium text-gray-700">@lang("Description")</label>
                     <textarea id="description" name="description" rows="4" class="mt-1 block w-full border border-gray-300 rounded">{{ old('description') }}</textarea>
                     <x-input-error :messages="$errors->get('description')" class="mt-1" />
                 </div>
 
-                {{-- Adresse de départ (readonly) --}}
                 <div>
-                    <label for="from_city" class="block text-sm font-medium text-gray-700">@lang("Shipping from (your store)")</label>
-                    <input type="text" name="from_city" id="from_city" value="{{ Auth::user()->adresse }}" readonly class="mt-1 block w-full border border-gray-300 rounded bg-gray-100" />
-                </div>
+                        <label for="from_city" class="block text-sm font-medium text-gray-700">Ville de départ</label>
+                        <div class="relative">
+                            <x-text-input id="from_city" name="from_city" class="mt-1" value="{{ old('from_city') }}" autocomplete="off" />
+                            <x-input-error :messages="$errors->get('from_city')" class="mt-1" />
+                            <ul id="from_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
+                        </div>
+                        <input type="hidden" name="from_lat" id="from_lat" value="{{ old('from_lat') }}">
+                        <input type="hidden" name="from_lng" id="from_lng" value="{{ old('from_lng') }}">
+
+                    </div>
 
                 <div>
-                    <label for="to_city" class="block text-sm font-medium text-gray-700">@lang("Delivery address (destination)")</label>
-                    <x-text-input id="to_city" name="to_city" class="mt-1" value="{{ old('to_city') }}" required />
-                    <x-input-error :messages="$errors->get('to_city')" class="mt-1" />
-                </div>
+                        <label for="to_city" class="block text-sm font-medium text-gray-700">Ville d’arrivée</label>
+                        <div class="relative">
+                            <x-text-input id="to_city" name="to_city" class="mt-1" value="{{ old('to_city') }}" autocomplete="off" />
+                            <x-input-error :messages="$errors->get('to_city')" class="mt-1" />
+                            <ul id="to_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
+                        </div>
+                        <input type="hidden" name="to_lat" id="to_lat" value="{{ old('to_lat') }}">
+                        <input type="hidden" name="to_lng" id="to_lng" value="{{ old('to_lng') }}">
+
+                    </div>
 
                 <div>
                     <label for="preferred_date" class="block text-sm font-medium text-gray-700">@lang("Preferred date")</label>
@@ -73,4 +85,17 @@
             </form>
         </div>
     </div>
+
+    <x-autocomplete-script />
+
+        <script>
+            function toggleFields() {
+                const type = document.getElementById('type').value;
+                const transportFields = document.getElementById('transport-fields');
+                transportFields.style.display = (type === 'transport') ? 'block' : 'none';
+            }
+
+            document.addEventListener('DOMContentLoaded', toggleFields);
+    </script>
+
 </x-app-layout>

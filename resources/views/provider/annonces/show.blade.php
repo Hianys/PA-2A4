@@ -50,7 +50,7 @@
                 </form>
 
             {{-- Affiche le bouton pour marquer comme réalisée si elle est déjà acceptée par ce prestataire --}}
-            @elseif ($annonce->status === 'taken' && $annonce->provider_id === auth()->id())
+            @elseif ($annonce->status === 'prise en charge' && $annonce->provider_id === auth()->id())
                 <form action="{{ route('provider.annonces.complete', $annonce) }}" method="POST">
                     @csrf
                     @method('PATCH')

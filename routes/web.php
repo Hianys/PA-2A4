@@ -60,7 +60,8 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/admin/users/{id}', [AdminController::class, 'destroy'])->name('admin.delete');
     Route::get('/livreur/documents', [ProfileController::class, 'documents'])->name('livreur.documents');
     Route::post('/livreur/documents', [ProfileController::class, 'uploadDocuments'])->name('livreur.documents.upload');
-
+    Route::get('/admin/documents', [AdminController::class, 'documents'])->name('admin.documents');
+    Route::patch('/admin/kbis/{id}/toggle', [AdminController::class, 'toggleKbisValidation'])->name('admin.kbis.toggle');
 
     Route::get('/admin/annonces', [AdminController::class, 'annoncesIndex'])->name('admin.annonces.index');
     Route::get('/admin/annonces/{annonce}', [AdminController::class, 'annoncesShow'])->name('admin.annonces.show');

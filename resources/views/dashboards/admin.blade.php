@@ -15,7 +15,7 @@
             <p class="text-gray-600 text-sm">Consulter et modérer les annonces.</p>
         </a>
 
-        <a href="#" class="bg-white shadow p-6 rounded hover:bg-gray-50">
+        <a href="{{ route('admin.documents') }}" class="bg-white shadow p-6 rounded hover:bg-gray-50">
             <h3 class="text-lg font-semibold mb-2">Documents</h3>
             <p class="text-gray-600 text-sm">Valider les documents des utilisateurs.</p>
         </a>

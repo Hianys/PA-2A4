@@ -18,7 +18,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('transport_segments', function (Blueprint $table) {
-            $table->enum('status', ['published', 'taken', 'completed'])
+            $table->enum('status', ['published', 'prise en charge', 'completed'])
                 ->default('published')
                 ->change();
         });

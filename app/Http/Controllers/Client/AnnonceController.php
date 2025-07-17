@@ -71,23 +71,29 @@ class AnnonceController extends Controller
             'photo' => 'nullable|file|image|max:2048',
         ]);
 
-        $data = $validated;
-        unset($data['photo']);
-        $data['user_id'] = auth()->id();
-        $data['status'] = 'publiée';
+    $data = $validated;
+    unset($data['photo']);
+    $data['user_id'] = auth()->id();
+    $data['status'] = 'publiée';
 
-        if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('uploads', 'public');
-            $data['photo'] = $path;
-        }else {
-            $data['photo'] = null;
+    foreach (['from_lat', 'from_lng', 'to_lat', 'to_lng', 'price', 'weight', 'volume'] as $field) {
+            if (empty($data[$field])) {
+                $data[$field] = null;
+            }
         }
 
-        Annonce::create($data);
-
-        return redirect()->route('client.annonces.index')
-            ->with('success', 'Annonce créée avec succès.');
+    if ($request->hasFile('photo')) {
+        $path = $request->file('photo')->store('uploads', 'public');
+        $data['photo'] = $path;
+    } else {
+        $data['photo'] = null;
     }
+
+    Annonce::create($data);
+
+    return redirect()->route('client.annonces.index')
+        ->with('success', 'Annonce créée avec succès.');
+}
 
     public function show(Annonce $annonce)
     {
@@ -121,13 +127,13 @@ class AnnonceController extends Controller
     }
 
     public function update(Request $request, Annonce $annonce)
-    {
-        if (
-            !(auth()->user()->isClient() || auth()->user()->isAdmin()) ||
-            (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
-            abort(403);
-        }
+{
+    if (
+        !(auth()->user()->isClient() || auth()->user()->isAdmin()) ||
+        (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
+    ) {
+        abort(403);
+    }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -148,23 +154,30 @@ class AnnonceController extends Controller
             'photo' => 'nullable|file|image|max:2048',
         ]);
 
-        $data = $validated;
-        $data['user_id'] = auth()->id();
+    $data = $validated;
+    $data['user_id'] = auth()->id();
 
-        unset($data['photo']);
+    unset($data['photo']);
 
-        if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('uploads', 'public');
-            $data['photo'] = $path;
-        } else {
-            $data['photo'] = $annonce->photo; // conserve l'ancienne si pas de nouvelle
+    foreach (['from_lat', 'from_lng', 'to_lat', 'to_lng', 'price', 'weight', 'volume'] as $field) {
+        if (empty($data[$field])) {
+            $data[$field] = null;
         }
-
-        $annonce->update($data);
-
-        return redirect()->route('client.annonces.show', $annonce)
-            ->with('success', 'Annonce mise à jour avec succès.');
     }
+
+    if ($request->hasFile('photo')) {
+        $path = $request->file('photo')->store('uploads', 'public');
+        $data['photo'] = $path;
+    } else {
+        $data['photo'] = $annonce->photo;
+    }
+
+    $annonce->update($data);
+
+    return redirect()->route('client.annonces.show', $annonce)
+        ->with('success', 'Annonce mise à jour avec succès.');
+}
+
 
 
     public function destroy(Annonce $annonce)
