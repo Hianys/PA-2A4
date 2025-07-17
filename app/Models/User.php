@@ -6,6 +6,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
+
 
 class User extends Authenticatable
 {
@@ -22,6 +26,12 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'identity_document',
+        'driver_license',
+        'documents_verified',
+        'enseigne',
+        'adresse',
+        'kbis_path',
     ];
 
     /**
@@ -44,6 +54,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'documents_verified' => 'boolean',
+            'identity_document' => 'string',
+            'driver_license' => 'string',
         ];
     }
 
@@ -76,9 +89,24 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+
     public function segmentsTaken()
     {
         return $this->hasMany(TransportSegment::class, 'delivery_id');
     }
+
+    public function wallet()
+    {
+        return $this->hasOne(\App\Models\Wallet::class);
+    }
+
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            $user->wallet()->create();
+        });
+    }
+
+
 
 }

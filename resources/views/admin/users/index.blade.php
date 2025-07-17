@@ -1,9 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold">Tableau de bord administrateur</h2>
+        <h2 class="text-xl font-semibold">Tous les utilisateurs</h2>
     </x-slot>
-
-    <x-admin-content>
+    <div class="max-w-7xl mx-auto py-6">
         <h2 class="text-2xl font-semibold mb-6">Liste des utilisateurs</h2>
 
         <form method="GET" action="{{ route('admin.dashboard') }}" class="mb-4">
@@ -46,8 +45,5 @@
             @endforeach
             </tbody>
         </table>
-
-
-
-    </x-admin-content>
+    </div>
 </x-app-layout>

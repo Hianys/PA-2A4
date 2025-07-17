@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold">Détail de l'annonce</h2>
+        <h2 class="text-xl font-semibold">@lang("Detail of the announcement")</h2>
     </x-slot>
 
     <div class="max-w-4xl mx-auto py-6 space-y-6">
@@ -8,7 +8,7 @@
         {{-- Lien retour --}}
         <div>
             <a href="{{ route('client.annonces.index') }}" class="text-indigo-600 hover:underline text-sm">
-                ← Retour à la liste des annonces
+                ← @lang("Back to announcements list")
             </a>
         </div>
 
@@ -28,9 +28,9 @@
 
             @if ($annonce->type === 'transport')
                 <div class="mt-4 text-sm text-gray-700">
-                    <p><strong>De :</strong> {{ $annonce->from_city }}</p>
-                    <p><strong>À :</strong> {{ $annonce->to_city }}</p>
-                    <p><strong>Date souhaitée :</strong>
+                    <p><strong>@lang("From") :</strong> {{ $annonce->from_city }}</p>
+                    <p><strong>@lang("To") :</strong> {{ $annonce->to_city }}</p>
+                    <p><strong>@lang("Preferred date") :</strong>
                         {{ $annonce->preferred_date ? \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') : 'Non précisée' }}
                     </p>
                 </div>
@@ -66,6 +66,33 @@
                     </button>
                 </form>
             </div>
+
+            @if ($annonce->status === 'en attente de paiement')
+                <div class="mt-6">
+                    <form method="POST" action="{{ route('delivery.pay', $annonce->id) }}">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                        >
+                            Payer la livraison
+                        </button>
+                    </form>
+                </div>
+            @elseif ($annonce->status === 'bloqué')
+                <div class="mt-6">
+                    <form method="POST" action="{{ route('delivery.confirm', $annonce->id) }}">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
+                            Confirmer la livraison
+                        </button>
+                    </form>
+                </div>
+            @endif
+
         </div>
 
         {{-- Carte --}}
@@ -76,7 +103,7 @@
         {{-- Segments pris en charge --}}
         @if ($segments->where('status', 'en attente')->count())
             <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-md font-semibold mb-4">Segments proposés à valider</h3>
+                <h3 class="text-md font-semibold mb-4">@lang("Supported Segments")</h3>
 
                 @foreach ($segments->where('status', 'en attente') as $segment)
                     <div class="border rounded p-4 mb-3">

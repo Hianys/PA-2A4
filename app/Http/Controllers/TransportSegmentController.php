@@ -81,12 +81,13 @@ class TransportSegmentController extends Controller
     }
 
 
-    public function show(Annonce $annonce)
+    public function show(\App\Models\TransportSegment $segment)
     {
-        // Chargement des segments liés avec les livreurs
-        $annonce->load('segments.livreur');
+        if (!auth()->user()->isDelivery() && !auth()->user()->isAdmin()) {
+            abort(403);
+        }
 
-        return view('delivery.annonces.show', compact('annonce'));
+        return view('delivery.segments.show', compact('segment'));
     }
 
     public function mesLivraisons()
@@ -101,18 +102,19 @@ class TransportSegmentController extends Controller
 
     public function updateStatus(Request $request, TransportSegment $segment)
     {
-        if ($segment->delivery_id !== auth()->id() and auth()->role() !== 'admin') {
+        if (!auth()->user()->isDelivery() && !auth()->user()->isAdmin()) {
             abort(403);
         }
 
         $request->validate([
-            'status' => 'required|in:en attente,accepte,refuse'
+            'status' => 'required|in:en attente,accepté,refusé,en cours,livré'
         ]);
 
         $segment->update(['status' => $request->status]);
 
         return back()->with('success', 'Statut mis à jour avec succès.');
     }
+
 
 
 }

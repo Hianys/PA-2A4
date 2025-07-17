@@ -30,6 +30,9 @@ class AuthenticatedSessionController extends Controller
 
         $role = Auth::user()->role;
 
+        \Log::info('Connexion réussie', ['id' => Auth::id(), 'role' => $role]);
+
+
         return redirect(dashboard_route_for($role));
     }
 

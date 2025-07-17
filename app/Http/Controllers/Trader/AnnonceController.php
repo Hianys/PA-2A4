@@ -2,67 +2,108 @@
 
 namespace App\Http\Controllers\Trader;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\Annonce;
-
+use App\Http\Requests\TraderProfileUpdateRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 class AnnonceController extends Controller
 {
-    public function index()
+    // Dashboard commerçant
+    public function dashboard()
     {
-        if (!auth()->user()->isTrader() && !auth()->user()->isAdmin()) {
+
+        $user = Auth::user();
+        if (!$user->isTrader() && !$user->isAdmin()) {
             abort(403);
         }
 
-        $annonces = auth()->user()->annonces()->latest()->get();
+        // Toutes les annonces de transport postées par CE commerçant
+        $annonces = Annonce::where('user_id', $user->id)
+            ->where('type', 'transport')
+            ->latest()
+            ->get();
+
+        return view('dashboards.trader', compact('annonces'));
+    }
+
+    // Liste des annonces du commerçant
+    public function index()
+    {
+        $user = Auth::user();
+        if (!$user->isTrader() && !$user->isAdmin()) {
+            abort(403);
+        }
+
+        $annonces = Annonce::where('user_id', $user->id)
+            ->where('type', 'transport')
+            ->latest()
+            ->get();
+
         return view('trader.annonces.index', compact('annonces'));
     }
 
+    // Formulaire de création
     public function create()
-    {
-        if (!auth()->user()->isTrader() && !auth()->user()->isAdmin()) {
-            abort(403);
-        }
+{
+    $user = Auth::user();
 
-        return view('trader.annonces.create');
+    if (!$user->isTrader() && !$user->isAdmin()) {
+        abort(403);
     }
 
+    if ($user->isTrader() && !$user->kbis_valide) {
+        return redirect()->route('trader.dashboard')
+            ->with('error', 'Vous ne pouvez pas publier d\'annonce tant que votre KBIS n\'est pas validé.');
+    }
+
+    // On passe l'adresse préremplie
+    $adresse = $user->adresse;
+
+    return view('trader.annonces.create', compact('adresse'));
+}
+
+    // Sauvegarde annonce
     public function store(Request $request)
     {
-        if (!auth()->user()->isTrader() && !auth()->user()->isAdmin()) {
+        $user = Auth::user();
+        if (!$user->isTrader() && !$user->isAdmin()) {
             abort(403);
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'required|in:transport,service',
-            'preferred_date' => 'nullable|date',
-            'from_city' => 'nullable|string|max:255',
-            'to_city' => 'nullable|string|max:255',
+            'preferred_date' => 'required|date',
+            'price' => 'nullable|numeric',
+            'constraints' => 'nullable|string',
+            'kbis' => 'nullable|image',
+            'to_city' => 'required|string|max:255', // Adresse de livraison
         ]);
 
-        Annonce::create([
-            'user_id' => auth()->id(),
-            'title' => $request->title,
-            'description' => $request->description,
-            'type' => $request->type,
-            'preferred_date' => $request->preferred_date,
-            'from_city' => $request->from_city,
-            'to_city' => $request->to_city,
-        ]);
+        $annonce = new Annonce($validated);
+        $annonce->user_id = $user->id;
+        $annonce->type = 'transport';
+        $annonce->status = 'publiée';
+        $annonce->from_city = $user->adresse; // adresse du commerçant
+
+        if ($request->hasFile('kbis')) {
+            $annonce->kbis = $request->file('kbis')->store('annonces', 'public');
+        }
+
+        $annonce->save();
 
         return redirect()->route('commercant.annonces.index')->with('success', 'Annonce créée avec succès.');
     }
 
     public function show(Annonce $annonce)
     {
-        if (
-            !auth()->user()->isTrader() && !auth()->user()->isAdmin()
-            || (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
+        $user = Auth::user();
+        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
@@ -71,10 +112,8 @@ class AnnonceController extends Controller
 
     public function edit(Annonce $annonce)
     {
-        if (
-            !auth()->user()->isTrader() && !auth()->user()->isAdmin()
-            || (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
+        $user = Auth::user();
+        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
@@ -83,39 +122,169 @@ class AnnonceController extends Controller
 
     public function update(Request $request, Annonce $annonce)
     {
-        if (
-            !auth()->user()->isTrader() && !auth()->user()->isAdmin()
-            || (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
+        $user = Auth::user();
+        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'required|in:transport,service',
-            'preferred_date' => 'nullable|date',
-            'from_city' => 'nullable|string|max:255',
-            'to_city' => 'nullable|string|max:255',
+            'preferred_date' => 'required|date',
+            'price' => 'nullable|numeric',
+            'constraints' => 'nullable|string',
+            'to_city' => 'required|string|max:255',
         ]);
 
-        $annonce->update($request->only([
-            'title', 'description', 'type', 'preferred_date', 'from_city', 'to_city'
-        ]));
+        $annonce->update($validated);
 
-        return redirect()->route('commercant.annonces.show', $annonce)->with('success', 'Annonce mise à jour.');
+        return redirect()->route('commercant.annonces.index')->with('success', 'Annonce mise à jour avec succès.');
     }
 
     public function destroy(Annonce $annonce)
     {
-        if (
-            !auth()->user()->isTrader() && !auth()->user()->isAdmin()
-            || (!auth()->user()->isAdmin() && $annonce->user_id !== auth()->id())
-        ) {
+        $user = Auth::user();
+        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
             abort(403);
         }
 
         $annonce->delete();
+
         return redirect()->route('commercant.annonces.index')->with('success', 'Annonce supprimée.');
     }
+
+    public function markCompleted(Annonce $annonce)
+    {
+        $user = Auth::user();
+        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
+            abort(403);
+        }
+
+        if ($annonce->status !== 'prise en charges') {
+            return redirect()->back()->with('error', 'La mission n\'est pas en cours.');
+        }
+
+        $annonce->status = 'complétée';
+        $annonce->save();
+
+        return redirect()->route('commercant.annonces.index')->with('success', 'Mission marquée comme complétée.');
+    }
+
+    // Gestion du profil commerçant (enseigne, adresse, document)
+    public function editProfile()
+    {
+        $user = Auth::user();
+        if (!$user->isTrader() && !$user->isAdmin()) {
+            abort(403);
+        }
+        return view('trader.profile', compact('user'));
+    }
+
+   public function updateProfile(\App\Http\Requests\TraderProfileUpdateRequest $request)
+{
+    $user = Auth::user();
+
+    if (!$user->isTrader() && !$user->isAdmin()) {
+        abort(403);
+    }
+
+    $validated = $request->validated();
+
+    \Log::info('Kbis reçu', ['kbis' => $request->file('kbis')]);
+
+    if ($request->hasFile('kbis')) {
+        $kbisFile = $request->file('kbis');
+
+        if (!$kbisFile->isValid()) {
+            \Log::error(' Fichier Kbis invalide', ['error' => $kbisFile->getErrorMessage()]);
+            return back()->withErrors(['kbis' => 'Erreur lors de l\'upload du fichier.']);
+        }
+
+        // Supprimer l'ancien fichier s'il existe
+        if ($user->kbis && \Storage::disk('public')->exists($user->kbis)) {
+            \Storage::disk('public')->delete($user->kbis);
+        }
+
+        // Générer un nom de fichier propre
+        $extension = $kbisFile->getClientOriginalExtension();
+        $filename = uniqid('kbis_') . ($extension ? '.' . $extension : '');
+
+        // Stocker dans le disque "public" (storage/app/public/commercant_docs)
+        $kbisFile->storeAs('commercant_docs', $filename, ['disk' => 'public']);
+        $filePath = 'commercant_docs/' . $filename;
+
+        \Log::info('✅ Kbis stocké à', ['path' => $filePath]);
+
+        // Enregistrer le chemin relatif dans la base
+        $user->kbis = $filePath;
+    }
+
+    // Mettre à jour les champs texte
+    if (isset($validated['enseigne'])) {
+        $user->enseigne = $validated['enseigne'];
+    }
+
+    if (isset($validated['adresse'])) {
+        $user->adresse = $validated['adresse'];
+    }
+
+    \Log::info('Avant save', ['kbis' => $user->kbis, 'id' => $user->id]);
+    $user->save();
+    \Log::info('Après save', ['kbis' => $user->fresh()->kbis, 'id' => $user->id]);
+
+    return redirect()->route('commercant.profile.edit')->with('success', 'Profil commerçant mis à jour !');
+}
+
+    public function showConsentForm()
+{
+    $user = Auth::user();
+    return view('trader.consentement', ['enseigne' => $user->enseigne]);
+}
+
+   public function generateConsentPdf(Request $request)
+{
+    $request->validate([
+        'accept_terms' => 'nullable',
+        'enseigne' => 'required|string|max:255',
+    ]);
+
+    $user = Auth::user();
+
+    $pdf = Pdf::loadView('pdfs.consentement', [
+        'enseigne' => $request->enseigne,
+        'date' => now()->format('d/m/Y'),
+        'user' => $user,
+    ]);
+
+    return $pdf->download('consentement_' . $user->id . '.pdf');
+}   
+
+public function validerConsentement(Request $request)
+{
+    $request->validate([
+        'accept_terms' => 'nullable', // facultatif si décoché
+        'enseigne' => 'required|string|max:255',
+    ]);
+
+    $user = Auth::user();
+    $user->enseigne = $request->enseigne;
+    $user->consentement_valide = $request->has('accept_terms');
+    $user->save();
+
+    return redirect()->route('commercant.consentement.form')->with('success', 'Consentement mis à jour.');
+}
+
+public function telechargerPdf()
+{
+    $user = Auth::user();
+
+    $pdf = Pdf::loadView('pdfs.consentement', [
+        'enseigne' => $user->enseigne,
+        'date' => now()->format('d/m/Y'),
+        'user' => $user,
+    ]);
+
+    return $pdf->download('consentement_' . $user->id . '.pdf');
+}
+
 }

@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('annonces', function (Blueprint $table) {
-            $table->string('type')->default('transport'); // ou 'service'
+        Schema::table('transport_segments', function (Blueprint $table) {
+            $table->enum('status', ['en attente', 'accepté', 'en cours', 'refusé'])
+                ->default('en attente')
+                ->change();
         });
     }
 
@@ -21,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('annonces', function (Blueprint $table) {
-            $table->dropColumn('type');
-        });
+        //
     }
 };

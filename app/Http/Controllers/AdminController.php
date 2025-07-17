@@ -212,6 +212,16 @@ class AdminController extends Controller
         return back()->with('success', 'Annonce archivée.');
     }
 
+    public function annoncesRestore($id)
+    {
+        $annonce = \App\Models\Annonce::findOrFail($id);
+        $annonce->status = 'publiée';
+        $annonce->save();
+
+        return redirect()->route('admin.annonces.show', $annonce->id)
+            ->with('success', 'Annonce restaurée.');
+    }
+
     public function annoncesDelete($id)
     {
         $annonce = \App\Models\Annonce::findOrFail($id);
@@ -264,6 +274,43 @@ class AdminController extends Controller
             ->with('success', 'Segment supprimé.');
     }
 
+
+
+    public function documents()
+{
+    // On récupère uniquement les utilisateurs commerçants ayant un KBIS
+    $users = User::where('role', 'commercant')
+                 ->whereNotNull('kbis')
+                 ->get();
+
+    return view('admin.documents', compact('users'));
+}
+
+    public function toggleKbisValidation($id)
+{
+    $user = User::findOrFail($id);
+
+    // Inverse la valeur actuelle
+    $user->kbis_valide = !$user->kbis_valide;
+    $user->save();
+
+    $message = $user->kbis_valide ? 'KBIS validé avec succès.' : 'Validation du KBIS annulée.';
+
+    return redirect()->route('admin.documents')->with('success', $message);
+}
+
+ public function validateDocuments($id)
+{
+    if (Auth::user()->role !== 'admin') {
+        abort(403, 'Accès interdit');
+    }
+
+    $user = User::findOrFail($id);
+    $user->documents_verified = true;
+    $user->save();
+
+    return redirect()->route('admin.dashboard')->with('success', 'Documents validés.');
+}
 
 
 

@@ -1,11 +1,11 @@
 <section>
     <header>
         <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-            {{ __('Informations du profil') }}
+            @lang('Profil informations')
         </h2>
 
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {{ __("Mettez à jour les informations de profil et l'adresse e-mail de votre compte.") }}
+            @lang("update your account's profile information and email address.")
         </p>
     </header>
 
@@ -31,16 +31,16 @@
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                 <div>
                     <p class="text-sm mt-2 text-gray-800 dark:text-gray-200">
-                        {{ __("Votre adresse e-mail n'est pas vérifiée.") }}
+                        @lang("Your email address isn't verified.")
 
                         <button form="send-verification" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
-                            {{ __("Cliquez ici pour renvoyer l'e-mail de vérification.") }}
+                            @lang("Click here to re-send the verification email.")
                         </button>
                     </p>
 
                     @if (session('status') === 'verification-link-sent')
                         <p class="mt-2 font-medium text-sm text-green-600 dark:text-green-400">
-                            {{ __('Un nouveau lien de vérification a été envoyé à votre adresse e-mail.') }}
+                            @lang("a new verification link has been sent to your email address.")
                         </p>
                     @endif
                 </div>
@@ -48,7 +48,7 @@
         </div>
 
         <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Enregistrer') }}</x-primary-button>
+            <x-primary-button>@lang('Register')</x-primary-button>
 
             @if (session('status') === 'profile-updated')
                 <p
@@ -57,7 +57,7 @@
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
                     class="text-sm text-gray-600 dark:text-gray-400"
-                >{{ __('Enregistré.') }}</p>
+                >@lang('Profile updated successfully.')</p>
             @endif
         </div>
     </form>
