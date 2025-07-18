@@ -12,13 +12,9 @@ Route::post('/logout', [AuthController::class, 'logout']);
 
 // Annonces (Livraisons)
 Route::get('/annonces/transport', [CLientController::class, 'indexTransport']);
-Route::get('/annonces/transport/{id}', [CLientController::class, 'showTransport']);
 Route::post('/annonces/transport/{id}/valider', [CLientController::class, 'validerTransport']);
 
 // Prestations
 Route::get('/annonces/prestation', [ProviderController::class, 'indexPrestation']);
-Route::get('/annonces/prestation/{id}', [ProviderController::class, 'showPrestation']);
 Route::post('/annonces/prestation/{id}/valider', [ProviderController::class, 'validerPrestation']);
 
-// Profil utilisateur
-//Route::get('/user/profile', [UserController::class, 'profile']);

@@ -278,35 +278,6 @@ class AnnonceController extends Controller
         ]);
     }
 
-    public function showTransport($id, Request $request)
-    {
-        $userId = $request->input('user_id');
-
-        if (!$userId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'user_id manquant dans la requête.'
-            ], 400);
-        }
-
-        $annonce = \App\Models\Annonce::where('id', $id)
-            ->where('user_id', $userId)
-            ->where('type', 'transport')
-            ->first();
-
-        if (!$annonce) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Annonce non trouvée ou non autorisée.'
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'annonce' => $annonce
-        ]);
-    }
-
     public function validerTransport($id, Request $request)
     {
         $userId = $request->input('user_id');

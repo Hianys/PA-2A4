@@ -222,7 +222,7 @@ class AnnonceController extends Controller
             ], 400);
         }
 
-        $prestations = \App\Models\Annonce::where('type', 'prestation')
+        $prestations = \App\Models\Annonce::where('type', 'service')
             ->where('user_id', $userId)
             ->get([
                 'id',
@@ -238,35 +238,6 @@ class AnnonceController extends Controller
         ]);
     }
 
-    public function showPrestation($id, Request $request)
-    {
-        $userId = $request->input('user_id');
-
-        if (!$userId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'user_id manquant.'
-            ], 400);
-        }
-
-        $prestation = \App\Models\Annonce::where('id', $id)
-            ->where('type', 'prestation')
-            ->where('user_id', $userId)
-            ->first();
-
-        if (!$prestation) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Prestation non trouvée ou non autorisée.'
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'prestation' => $prestation
-        ]);
-    }
-
     public function validerPrestation($id, Request $request)
     {
         $userId = $request->input('user_id');
@@ -279,7 +250,7 @@ class AnnonceController extends Controller
         }
 
         $prestation = \App\Models\Annonce::where('id', $id)
-            ->where('type', 'prestation')
+            ->where('type', 'service')
             ->where('user_id', $userId)
             ->first();
 
