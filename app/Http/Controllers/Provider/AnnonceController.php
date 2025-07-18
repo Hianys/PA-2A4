@@ -218,15 +218,16 @@ class AnnonceController extends Controller
         if (!$userId) {
             return response()->json([
                 'success' => false,
-                'message' => 'user_id manquant.'
+                'message' => 'user_id manquant dans la requête.'
             ], 400);
         }
 
-        $prestations = \App\Models\Annonce::where('type', 'prestation')
+        $prestations = \App\Models\Annonce::where('type', 'service')
             ->where('user_id', $userId)
             ->get([
                 'id',
                 'title',
+                'description',
                 'preferred_date',
                 'price',
                 'status'
@@ -238,7 +239,7 @@ class AnnonceController extends Controller
         ]);
     }
 
-    public function showPrestation($id, Request $request)
+    /*public function showPrestation($id, Request $request)
     {
         $userId = $request->input('user_id');
 
@@ -265,7 +266,7 @@ class AnnonceController extends Controller
             'success' => true,
             'prestation' => $prestation
         ]);
-    }
+    }*/
 
     public function validerPrestation($id, Request $request)
     {
@@ -279,7 +280,7 @@ class AnnonceController extends Controller
         }
 
         $prestation = \App\Models\Annonce::where('id', $id)
-            ->where('type', 'prestation')
+            ->where('type', 'service')
             ->where('user_id', $userId)
             ->first();
 

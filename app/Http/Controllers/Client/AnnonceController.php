@@ -265,6 +265,7 @@ class AnnonceController extends Controller
             ->get([
                 'id',
                 'title',
+                'description',
                 'from_city',
                 'to_city',
                 'preferred_date',
@@ -278,7 +279,7 @@ class AnnonceController extends Controller
         ]);
     }
 
-    public function showTransport($id, Request $request)
+    /*public function showTransport($id, Request $request)
     {
         $userId = $request->input('user_id');
 
@@ -305,7 +306,7 @@ class AnnonceController extends Controller
             'success' => true,
             'annonce' => $annonce
         ]);
-    }
+    }*/
 
     public function validerTransport($id, Request $request)
     {
