@@ -207,5 +207,37 @@ class AnnonceController extends Controller
 
     return view('provider.annonces.missions', compact('annonces'));
 }
+    
+        public function confirmerAnnonce(Request $request, Annonce $annonce)
+{
+    $prestataire = $annonce->acceptedBy;
+    $amount = $annonce->price;
 
+    if ($prestataire->wallet->blocked_balance < $amount) {
+        return back()->with('error', 'Fonds insuffisants.');
+    }
+
+    // Débloquer et transférer
+    $prestataire->wallet->blocked_balance -= $amount;
+    $prestataire->wallet->balance += $amount;
+    $prestataire->wallet->save();
+
+    // Valider l’annonce
+    $annonce->is_confirmed = true;
+    $annonce->save();
+
+    // Mettre à jour la transaction
+    $transaction = $prestataire->wallet->transactions()
+        ->where('type', 'service')
+        ->where('status', 'pending')
+        ->latest()
+        ->first();
+
+    if ($transaction) {
+        $transaction->status = 'completed';
+        $transaction->save();
+    }
+
+    return back()->with('success', 'Service confirmé. Paiement libéré.');
+}
 }

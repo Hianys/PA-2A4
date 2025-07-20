@@ -54,5 +54,54 @@
                 </form>
             </div>
         </div>
+        @if(auth()->user()->role === 'commercant')
+    @if($annonce->livreur && !$annonce->is_paid)
+        <div class="mt-4">
+            <form method="POST" action="{{ route('commercant.annonces.payer', $annonce) }}">
+                @csrf
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                    Payer {{ number_format($annonce->price, 2) }} €
+                </button>
+            </form>
+        </div>
+    @elseif($annonce->livreur && $annonce->is_paid && !$annonce->is_confirmed)
+        <div class="mt-4">
+            <form method="POST" action="{{ route('commercant.annonces.confirmer', $annonce) }}">
+                @csrf
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    Confirmer la livraison
+                </button>
+            </form>
+        </div>
+    @endif
+@endif
+
+{{-- Segments à valider (comme chez le client) --}}
+@if ($annonce->segments->where('status', 'en attente')->count())
+    <div class="mt-6 bg-white shadow rounded-lg p-6">
+        <h3 class="text-md font-semibold mb-4">@lang("Supported Segments")</h3>
+
+        @foreach ($annonce->segments->where('status', 'en attente') as $segment)
+            <div class="border rounded p-4 mb-3">
+                <p>{{ $segment->from_city }} → {{ $segment->to_city }} 
+                    @if($segment->livreur)
+                        <span class="text-sm text-gray-500">par {{ $segment->livreur->name }}</span>
+                    @endif
+                </p>
+
+                <form method="POST" action="{{ route('segments.accept', $segment) }}" class="inline-block">
+                    @csrf
+                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Accepter</button>
+                </form>
+
+                <form method="POST" action="{{ route('segments.refuse', $segment) }}" class="inline-block ml-2">
+                    @csrf
+                    <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Refuser</button>
+                </form>
+            </div>
+        @endforeach
     </div>
+@endif
+    </div>
+    
 </x-app-layout>

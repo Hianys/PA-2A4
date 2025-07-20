@@ -51,41 +51,67 @@
         @endif
 
         {{-- Formulaire pour proposer un segment --}}
-        @if ($annonce->type === 'transport')
-            <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-md font-semibold mb-4">@lang('Propose a segment to be supported')</h3>
+        @if ($annonce->type === 'transport' && $annonce->canReceiveSegment())
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-md font-semibold mb-4">@lang('Propose a segment to be supported')</h3>
 
-                @if (session('success'))
-                    <div class="text-green-600 text-sm mb-3">{{ session('success') }}</div>
-                @endif
-
-                @if (session('error'))
-                    <div class="text-red-600 text-sm mb-3">{{ session('error') }}</div>
-                @endif
-
-                <form method="POST" action="{{ route('segments.store', $annonce) }}" class="space-y-4 relative">
-                    @csrf
-
-                    <div class="relative">
-                        <label for="from_city" class="block text-sm font-medium text-gray-700">@lang('Departure city')</label>
-                        <x-text-input id="from_city" name="from_city" autocomplete="off" class="mt-1" required />
-                        <ul id="from_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
-                        <x-input-error :messages="$errors->get('from_city')" class="mt-1" />
-                    </div>
-
-                    <div class="relative">
-                        <label for="to_city" class="block text-sm font-medium text-gray-700">@lang('Arrival city')</label>
-                        <x-text-input id="to_city" name="to_city" autocomplete="off" class="mt-1" required />
-                        <ul id="to_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
-                        <x-input-error :messages="$errors->get('to_city')" class="mt-1" />
-                    </div>
-
-                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                        @lang('Validate this segment')
-                    </button>
-                </form>
-            </div>
+        @if (session('success'))
+            <div class="text-green-600 text-sm mb-3">{{ session('success') }}</div>
         @endif
+
+        @if (session('error'))
+            <div class="text-red-600 text-sm mb-3">{{ session('error') }}</div>
+        @endif
+
+        <form method="POST" action="{{ route('segments.store', $annonce) }}" class="space-y-4 relative">
+            @csrf
+
+            <div class="relative">
+                <label for="from_city" class="block text-sm font-medium text-gray-700">@lang('Departure city')</label>
+                <x-text-input id="from_city" name="from_city" autocomplete="off" class="mt-1" required />
+                <ul id="from_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
+                <x-input-error :messages="$errors->get('from_city')" class="mt-1" />
+            </div>
+
+            <div class="relative">
+                <label for="to_city" class="block text-sm font-medium text-gray-700">@lang('Arrival city')</label>
+                <x-text-input id="to_city" name="to_city" autocomplete="off" class="mt-1" required />
+                <ul id="to_city_suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded shadow hidden"></ul>
+                <x-input-error :messages="$errors->get('to_city')" class="mt-1" />
+            </div>
+
+            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                @lang('Validate this segment')
+            </button>
+        </form>
+    </div>
+@elseif ($annonce->type === 'transport')
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-md font-semibold text-red-600">@lang('No more segments can be proposed for this delivery.')</h3>
+    </div>
+@endif
+@if ($annonce->status === 'prise en charge' && $annonce->livreur_id === auth()->id())
+    <div class="mt-6">
+        <form method="POST" action="{{ route('delivery.annonces.markPending', $annonce) }}">
+            @csrf
+            <button type="submit" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+                Confirmer la livraison (passer en attente de paiement)
+            </button>
+        </form>
+    </div>
+@endif
+
+@if ($annonce->status === 'prise en charge' && $annonce->livreur_id === auth()->id())
+    <div class="mt-6">
+        <form method="POST" action="{{ route('delivery.annonces.markAsWaitingPayment', $annonce) }}">
+            @csrf
+            <button type="submit"
+                    class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+                Marquer comme en attente de paiement
+            </button>
+        </form>
+    </div>
+@endif
     </div>
     <x-autocomplete-script />
 </x-app-layout>

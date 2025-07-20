@@ -91,6 +91,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/client/annonces/{annonce}', [ClientAnnonceController::class, 'destroy'])->name('client.annonces.destroy');
     Route::post('/segments/{segment}/accept', [TransportSegmentController::class, 'accept'])->name('segments.accept');
     Route::post('/segments/{segment}/refuse', [TransportSegmentController::class, 'refuse'])->name('segments.refuse');
+    Route::post('/client/annonces/{annonce}/payer', [ClientAnnonceController::class, 'payAnnonce'])->name('client.annonces.payer');
 
 });
 
@@ -101,6 +102,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/livreur/annonces/{annonce}/segment', [TransportSegmentController::class, 'store'])->name('segments.store');
     Route::get('/livreur/mes-livraisons', [TransportSegmentController::class, 'mesLivraisons'])->name('delivery.segments.index');
     Route::patch('livreur/segments/{segment}/status', [TransportSegmentController::class, 'updateStatus'])->name('segments.updateStatus');
+    Route::post('/livreur/annonces/{annonce}/confirmer', [DeliveryAnnonceController::class, 'confirmerAnnonce'])->name('delivery.annonces.confirmer');
+    Route::post('/livreur/annonces/{annonce}/marquer-en-attente', [DeliveryAnnonceController::class, 'marquerEnAttenteDePaiement'])->name('delivery.annonces.markPending');
+    Route::post('/delivery/annonces/{annonce}/mark-as-waiting-payment', [DeliveryAnnonceController::class, 'marquerEnAttenteDePaiement'])->name('delivery.annonces.markAsWaitingPayment');
+    Route::get('/delivery/mes-annonces', [DeliveryAnnonceController::class, 'mesAnnonces'])->name('delivery.annonces.mes');
+
+
 
 });
 
@@ -115,6 +122,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('commercant/annonces/{annonce}', [TraderAnnonceController::class, 'destroy'])->name('commercant.annonces.destroy');
     Route::patch('commercant/annonces/{annonce}/complete', [TraderAnnonceController::class, 'markCompleted'])->name('commercant.annonces.complete');
     Route::get('/commercant/dashboard', [TraderAnnonceController::class, 'dashboard'])->name('trader.dashboard');
+    Route::post('/commercant/annonces/{annonce}/payer', [TraderAnnonceController::class, 'payAnnonce'])->name('commercant.annonces.payer');
+
 
 
     // Profil commerçant
@@ -141,6 +150,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/prestataire/annonces/{annonce}/accept', [ProviderAnnonceController::class, 'accept'])->name('provider.annonces.accept');
     Route::patch('/prestataire/annonces/{annonce}/complete', [ProviderAnnonceController::class, 'markCompleted'])->name('provider.annonces.complete');
     Route::get('/prestataire/missions', [ProviderAnnonceController::class, 'missions'])->name('provider.annonces.missions');
+    Route::post('/prestataire/annonces/{annonce}/confirmer', [ProviderAnnonceController::class, 'confirmerAnnonce'])->name('provider.annonces.confirmer');
+
 });
 
 Route::get('/upload', function () {

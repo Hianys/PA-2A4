@@ -69,37 +69,45 @@ class AnnonceController extends Controller
 
     // Sauvegarde annonce
     public function store(Request $request)
-    {
-        $user = Auth::user();
-        if (!$user->isTrader() && !$user->isAdmin()) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'preferred_date' => 'required|date',
-            'price' => 'nullable|numeric',
-            'constraints' => 'nullable|string',
-            'kbis' => 'nullable|image',
-            'to_city' => 'required|string|max:255', // Adresse de livraison
-        ]);
-
-        $annonce = new Annonce($validated);
-        $annonce->user_id = $user->id;
-        $annonce->type = 'transport';
-        $annonce->status = 'publiée';
-        $annonce->from_city = $user->adresse; // adresse du commerçant
-
-        if ($request->hasFile('kbis')) {
-            $annonce->kbis = $request->file('kbis')->store('annonces', 'public');
-        }
-
-        $annonce->save();
-
-        return redirect()->route('commercant.annonces.index')->with('success', 'Annonce créée avec succès.');
+{
+    $user = Auth::user();
+    if (!$user->isTrader() && !$user->isAdmin()) {
+        abort(403);
     }
 
+   $validated = $request->validate([
+    'title' => 'required|string|max:255',
+    'description' => 'nullable|string',
+    'preferred_date' => 'required|date',
+    'price' => 'nullable|numeric',
+    'constraints' => 'nullable|string',
+    'kbis' => 'nullable|image',
+    'from_city' => 'required|string|max:255',
+    'to_city' => 'required|string|max:255',
+]);
+
+$annonce = new Annonce($validated);
+
+// Coordonnées GPS (si valides)
+$annonce->from_lat = is_numeric($request->from_lat) ? $request->from_lat : null;
+$annonce->from_lng = is_numeric($request->from_lng) ? $request->from_lng : null;
+$annonce->to_lat   = is_numeric($request->to_lat)   ? $request->to_lat   : null;
+$annonce->to_lng   = is_numeric($request->to_lng)   ? $request->to_lng   : null;
+
+// Infos auto
+$annonce->user_id = $user->id;
+$annonce->type = 'transport';
+$annonce->status = 'publiée';
+
+// Fichier kbis si envoyé
+if ($request->hasFile('kbis')) {
+    $annonce->kbis = $request->file('kbis')->store('annonces', 'public');
+}
+
+$annonce->save();
+
+return redirect()->route('commercant.annonces.index')->with('success', 'Annonce créée avec succès.');
+}
     public function show(Annonce $annonce)
     {
         $user = Auth::user();
@@ -285,6 +293,94 @@ public function telechargerPdf()
     ]);
 
     return $pdf->download('consentement_' . $user->id . '.pdf');
+}
+
+    public function payAnnonce(Request $request, \App\Models\Annonce $annonce)
+{
+    $commercant = auth()->user();
+
+    // Vérifie que le commerçant est bien propriétaire de l'annonce
+    if ($annonce->user_id !== $commercant->id) {
+        abort(403);
+    }
+
+    // Vérifie qu’un livreur a bien été assigné
+    $livreur = $annonce->livreur;
+    if (!$livreur) {
+        return back()->with('error', 'Aucun livreur assigné à cette annonce.');
+    }
+
+    $amount = $annonce->price;
+
+    // Vérifie solde
+    if ($commercant->wallet->balance < $amount) {
+        return back()->with('error', 'Solde insuffisant.');
+    }
+
+    // Débit du commerçant
+    $commercant->wallet->balance -= $amount;
+    $commercant->wallet->save();
+
+    // Blocage sur le compte du livreur
+    $livreur->wallet->blocked_balance += $amount;
+    $livreur->wallet->save();
+
+    // Créer transaction bloquée
+    $livreur->wallet->transactions()->create([
+        'type' => 'delivery',
+        'amount' => $amount,
+        'status' => 'pending',
+    ]);
+
+    // Marquer annonce comme payée
+    $annonce->is_paid = true;
+    $annonce->save();
+
+    return back()->with('success', 'Paiement effectué et fonds bloqués pour le livreur.');
+}
+
+public function confirmer(Request $request, \App\Models\Annonce $annonce)
+{
+    $commercant = auth()->user();
+
+    if ($annonce->user_id !== $commercant->id) {
+        abort(403);
+    }
+
+    $livreur = $annonce->livreur;
+    $amount = $annonce->price;
+
+    if (!$livreur) {
+        return back()->with('error', 'Aucun livreur assigné.');
+    }
+
+    if ($livreur->wallet->blocked_balance < $amount) {
+        return back()->with('error', 'Montant bloqué insuffisant.');
+    }
+
+    // Déblocage des fonds
+    $livreur->wallet->blocked_balance -= $amount;
+    $livreur->wallet->balance += $amount;
+    $livreur->wallet->save();
+
+    // Marque transaction comme complétée
+    $transaction = $livreur->wallet->transactions()
+        ->where('type', 'delivery')
+        ->where('status', 'pending')
+        ->latest()
+        ->first();
+
+    if ($transaction) {
+        $transaction->status = 'completed';
+        $transaction->save();
+    }
+
+    // Mettre à jour l’annonce
+    $annonce->is_confirmed = true;
+    $annonce->status = 'complétée';
+    $annonce->save();
+
+    return back()->with('success', 'Livraison confirmée, paiement libéré au livreur.');
 }
 
 }

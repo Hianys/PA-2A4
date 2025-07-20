@@ -57,6 +57,9 @@
                 <p class="text-gray-600 dark:text-gray-300">@lang("Your delivery history will appear here.")</p>
             </div>
 
+            <a href="{{ route('delivery.annonces.mes') }}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                Mes annonces prises
+            </a>
         </div>
     </div>
 </x-app-layout>

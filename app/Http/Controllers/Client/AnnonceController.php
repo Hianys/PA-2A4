@@ -201,57 +201,83 @@ class AnnonceController extends Controller
         return redirect()->route('client.annonces.index')->with('success', 'Annonce supprimée.');
     }
 
-    public function confirmDelivery(Request $request, \App\Models\Annonce $delivery)
-    {
-        $client = auth()->user();
+    public function payAnnonce(Request $request, Annonce $annonce)
+{
+    $user = Auth::user();
+    $amount = $annonce->price;
 
-        // récupère le livreur lié à l’annonce
-        $livreur = $delivery->livreur;
-        if (!$livreur) {
-            return redirect()
-                ->route('client.annonces.show', $delivery)
-                ->with('error', 'Aucun livreur associé à cette annonce.');
-        }
-
-        $this->walletService->unblockTo(
-            $client,
-            $livreur,
-            $delivery->price,
-            "Déblocage livraison #{$delivery->id}"
-        );
-
-        $delivery->update([
-            'status' => 'complétée'
-        ]);
-
-        return redirect()
-            ->route('client.annonces.show', $delivery)
-            ->with('success', 'Livraison confirmée et paiement débloqué au livreur.');
+    if ($user->wallet->balance < $amount) {
+        return back()->with('error', 'Solde insuffisant.');
     }
 
+    // Débiter le client
+    $user->wallet->balance -= $amount;
+    $user->wallet->save();
 
+    // Bloquer l’argent chez le livreur ou prestataire
+    $prestataire = $annonce->acceptedBy; // → à adapter selon ta logique
+    $prestataire->wallet->blocked_balance += $amount;
+    $prestataire->wallet->save();
 
-    public function payDelivery(Request $request, \App\Models\Annonce $delivery)
-    {
-        $user = auth()->user();
-        $amount = $delivery->price;
+    // Marquer l’annonce comme payée
+    $annonce->is_paid = true;
+    $annonce->save();
 
-        $wallet = $user->wallet;
+    // Enregistrer la transaction
+    $prestataire->wallet->transactions()->create([
+        'type' => 'service',
+        'amount' => $amount,
+        'status' => 'pending',
+    ]);
 
-        if ($wallet && $wallet->balance >= $amount) {
-            $this->walletService->block($user, $amount, "Paiement livraison #{$delivery->id}");
+    return back()->with('success', 'Paiement effectué. Argent bloqué jusqu’à la confirmation.');
+}
 
+    use App\Models\Annonce;
+use Illuminate\Support\Facades\DB;
+
+public function confirmDelivery(Request $request, Annonce $delivery)
+{
+    $client = auth()->user();
+
+    // Sécurité : vérifier que le client est bien le propriétaire
+    if ($delivery->user_id !== $client->id || $delivery->status !== 'prise en charge') {
+        abort(403, 'Action non autorisée.');
+    }
+
+    $receiver = $delivery->livreur ?? $delivery->provider;
+
+    if (!$receiver) {
+        return back()->with('error', 'Aucun prestataire ou livreur à payer.');
+    }
+
+    $amount = $delivery->price;
+
+    try {
+        DB::transaction(function () use ($client, $receiver, $amount, $delivery) {
+            if ($client->wallet->balance < $amount) {
+                throw new \Exception("Solde insuffisant dans le portefeuille.");
+            }
+
+            // Débit client
+            $client->wallet->balance -= $amount;
+            $client->wallet->save();
+
+            // Crédit prestataire
+            $receiver->wallet->balance += $amount;
+            $receiver->wallet->save();
+
+            // Mettre à jour l’annonce
             $delivery->update([
-                'status' => 'bloqué'
+                'status' => 'complétée',
+                'is_paid' => true,
             ]);
+        });
 
-            return redirect()
-                ->route('client.annonces.show', $delivery)
-                ->with('success', 'Livraison payée et argent bloqué.');
-        } else {
-            return redirect()
-                ->route('wallet.index')
-                ->with('error', 'Solde insuffisant. Veuillez recharger votre portefeuille.');
-        }
+        return back()->with('success', 'Livraison confirmée et paiement effectué.');
+    } catch (\Exception $e) {
+        return back()->with('error', $e->getMessage());
     }
+}
+    
 }
