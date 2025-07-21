@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Annonce;
 use Illuminate\Http\Request;
 use App\Services\WalletService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class AnnonceController extends Controller
@@ -52,12 +53,12 @@ class AnnonceController extends Controller
         'title' => 'required|string|max:255',
         'description' => 'nullable|string',
         'type' => 'required|in:transport,service',
-        'preferred_date' => 'nullable|date',
+        'preferred_date' => 'required|date|after:today',
         'price' => 'nullable|numeric',
         'weight' => 'nullable|numeric',
         'volume' => 'nullable|numeric',
         'constraints' => 'nullable|string',
-        'status' => 'nullable|in:publiée,prise en charge,completed',
+        'status' => 'nullable|in:publiée,prise en charge,completée',
         'photo' => 'nullable|file|image|max:2048',
     ];
 
@@ -233,28 +234,32 @@ class AnnonceController extends Controller
     return back()->with('success', 'Paiement effectué. Argent bloqué jusqu’à la confirmation.');
 }
 
-    use App\Models\Annonce;
-use Illuminate\Support\Facades\DB;
-
-public function confirmDelivery(Request $request, Annonce $delivery)
+public function confirmDelivery(Request $request, Annonce $annonce)
 {
     $client = auth()->user();
 
+    /*dd([
+        'client_id' => $client->id,
+        'delivery_user_id' => $annonce->user_id,
+        'delivery_status' => $delivery->status,
+    ]);*/
+
+
     // Sécurité : vérifier que le client est bien le propriétaire
-    if ($delivery->user_id !== $client->id || $delivery->status !== 'prise en charge') {
+    if ($annonce->user_id !== $client->id || $annonce->status !== 'prise en charge') {
         abort(403, 'Action non autorisée.');
     }
 
-    $receiver = $delivery->livreur ?? $delivery->provider;
+    $receiver = $annonce->livreur ?? $annonce->provider;
 
     if (!$receiver) {
         return back()->with('error', 'Aucun prestataire ou livreur à payer.');
     }
 
-    $amount = $delivery->price;
+    $amount = $annonce->price;
 
     try {
-        DB::transaction(function () use ($client, $receiver, $amount, $delivery) {
+        DB::transaction(function () use ($client, $receiver, $amount, $annonce) {
             if ($client->wallet->balance < $amount) {
                 throw new \Exception("Solde insuffisant dans le portefeuille.");
             }
@@ -268,7 +273,7 @@ public function confirmDelivery(Request $request, Annonce $delivery)
             $receiver->wallet->save();
 
             // Mettre à jour l’annonce
-            $delivery->update([
+            $annonce->update([
                 'status' => 'complétée',
                 'is_paid' => true,
             ]);
@@ -279,5 +284,5 @@ public function confirmDelivery(Request $request, Annonce $delivery)
         return back()->with('error', $e->getMessage());
     }
 }
-    
+
 }

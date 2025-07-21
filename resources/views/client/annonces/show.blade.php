@@ -65,6 +65,15 @@
                         Supprimer
                     </button>
                 </form>
+
+                <form action="{{ route('client.annonces.validate', $annonce) }}" method="POST"
+                      onsubmit="return confirm('Confirmer la validation ?');">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
+                        Valider la livraison
+                    </button>
+                </form>
             </div>
 
             @if ($annonce->status === 'en attente de paiement')

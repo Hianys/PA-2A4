@@ -91,6 +91,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/client/annonces/{annonce}', [ClientAnnonceController::class, 'destroy'])->name('client.annonces.destroy');
     Route::post('/segments/{segment}/accept', [TransportSegmentController::class, 'accept'])->name('segments.accept');
     Route::post('/segments/{segment}/refuse', [TransportSegmentController::class, 'refuse'])->name('segments.refuse');
+    Route::put('/client/annonces/{annonce}/validate', [ClientAnnonceController::class, 'confirmDelivery'])->name('client.annonces.validate');
     Route::post('/client/annonces/{annonce}/payer', [ClientAnnonceController::class, 'payAnnonce'])->name('client.annonces.payer');
 
 });

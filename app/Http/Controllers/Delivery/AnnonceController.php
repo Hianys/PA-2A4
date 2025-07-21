@@ -23,7 +23,13 @@ class AnnonceController extends Controller
         abort(403);
     }
 
-    // Annonces avec un segment pris en charge par ce livreur
+    $annonces = \App\Models\Annonce::where('type', 'transport')
+        ->where('status', 'publiée')
+        ->latest()
+        ->get();
+
+    /*
+    //Annonces avec un segment pris en charge par ce livreur
     $annoncesViaSegments = \App\Models\Annonce::whereHas('segments', function ($query) use ($user) {
         $query->where('delivery_id', $user->id);
     })->get();
@@ -32,7 +38,7 @@ class AnnonceController extends Controller
     $annoncesDirectes = \App\Models\Annonce::where('livreur_id', $user->id)->get();
 
     // Fusion des deux collections
-    $annonces = $annoncesViaSegments->merge($annoncesDirectes)->sortByDesc('created_at');
+    $annonces = $annoncesViaSegments->merge($annoncesDirectes)->sortByDesc('created_at');*/
 
     return view('delivery.annonces.index', compact('annonces'));
 }
