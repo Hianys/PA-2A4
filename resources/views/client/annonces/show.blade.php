@@ -139,7 +139,7 @@
                 }, 4000); // Disparait au bout de 4s
             }
         });
-    </script>
+    </script> 
 
     {{-- Leaflet --}}
     <x-leaflet-annonce-map :annonce="$annonce" :segments="$segments" />
