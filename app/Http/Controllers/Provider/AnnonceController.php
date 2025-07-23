@@ -155,7 +155,8 @@ class AnnonceController extends Controller
     public function markCompleted(Annonce $annonce)
     {
         $user = Auth::user();
-        if ((!$user->isProvider() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
+
+        if ((!$user->isProvider() && !$user->isAdmin()) || $annonce->provider_id !== $user->id) {
             abort(403);
         }
 
@@ -163,10 +164,16 @@ class AnnonceController extends Controller
             return redirect()->back()->with('error', 'La mission n\'est pas en cours.');
         }
 
-        $annonce->status = 'complétée';
+        // Si l'annonce nécessite une validation de paiement, on passe à "en attente de paiement"
+        if ($annonce->requires_payment_validation) {
+            $annonce->status = 'en attente de paiement';
+        } else {
+            $annonce->status = 'complétée';
+        }
+
         $annonce->save();
 
-        return redirect()->route('provider.annonces.index')->with('success', 'Mission marquée comme complétée.');
+        return redirect()->route('provider.annonces.index')->with('success', 'Statut de la mission mis à jour.');
     }
 
     public function accept(Annonce $annonce)

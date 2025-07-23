@@ -51,57 +51,53 @@
                 </div>
             @endif
 
-            <div class="mt-6 flex space-x-2">
-                <a href="{{ route('client.annonces.edit', $annonce) }}"
-                   class="bg-yellow-500 text-white px-3 py-2 rounded hover:bg-yellow-600">
-                    Modifier
-                </a>
+            {{-- Actions générales --}}
+            <div class="mt-6 flex flex-wrap gap-2">
 
-                <form action="{{ route('client.annonces.destroy', $annonce) }}" method="POST"
-                      onsubmit="return confirm('Confirmer la suppression ?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700">
-                        Supprimer
-                    </button>
-                </form>
+                {{-- Modifier / Supprimer --}}
+                @if (!($annonce->type === 'service' && in_array($annonce->status, ['prise en charge', 'en attente de paiement', 'complétée'])))
+                    <a href="{{ route('client.annonces.edit', $annonce) }}"
+                       class="bg-yellow-500 text-white px-3 py-2 rounded hover:bg-yellow-600">
+                        Modifier
+                    </a>
 
-                <form action="{{ route('client.annonces.validate', $annonce) }}" method="POST"
-                      onsubmit="return confirm('Confirmer la validation ?');">
-                    @csrf
-                    @method('PUT')
-                    <button type="submit" class="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
-                        Valider la livraison
-                    </button>
-                </form>
+                    <form action="{{ route('client.annonces.destroy', $annonce) }}" method="POST"
+                          onsubmit="return confirm('Confirmer la suppression ?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700">
+                            Supprimer
+                        </button>
+                    </form>
+                @endif
+
+                {{-- Valider livraison pour transport --}}
+                @if ($annonce->type === 'transport')
+                    <form action="{{ route('client.annonces.validate', $annonce) }}" method="POST"
+                          onsubmit="return confirm('Confirmer la validation ?');">
+                        @csrf
+                        @method('PUT')
+                        <button type="submit" class="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
+                            Valider la livraison
+                        </button>
+                    </form>
+                @endif
+
+                {{-- Valider service + payer --}}
+                @if ($annonce->type === 'service' && $annonce->status === 'en attente de paiement' && $annonce->provider)
+                    <div class="mt-6">
+                        <form method="POST" action="{{ route('client.annonces.validate', $annonce) }}"
+                              onsubmit="return confirm('Confirmer la fin du service et payer le prestataire ?');">
+                            @csrf
+                            @method('PUT')
+                            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 shadow">
+                                Valider le service et payer le prestataire
+                            </button>
+                        </form>
+                    </div>
+                @endif
+
             </div>
-
-            @if ($annonce->status === 'en attente de paiement')
-                <div class="mt-6">
-                    <form method="POST" action="{{ route('delivery.pay', $annonce->id) }}">
-                        @csrf
-                        <button
-                            type="submit"
-                            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                        >
-                            Payer la livraison
-                        </button>
-                    </form>
-                </div>
-            @elseif ($annonce->status === 'bloqué')
-                <div class="mt-6">
-                    <form method="POST" action="{{ route('delivery.confirm', $annonce->id) }}">
-                        @csrf
-                        <button
-                            type="submit"
-                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                        >
-                            Confirmer la livraison
-                        </button>
-                    </form>
-                </div>
-            @endif
-
         </div>
 
         {{-- Carte --}}
@@ -132,10 +128,19 @@
             </div>
         @endif
 
-
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const popup = document.getElementById('popup-insufficient');
+            if (popup) {
+                setTimeout(() => {
+                    popup.style.display = 'none';
+                }, 4000); // Disparait au bout de 4s
+            }
+        });
+    </script>
 
     {{-- Leaflet --}}
     <x-leaflet-annonce-map :annonce="$annonce" :segments="$segments" />
-
 </x-app-layout>

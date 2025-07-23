@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Client;
 
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Models\Annonce;
 use Illuminate\Http\Request;
@@ -236,53 +237,65 @@ class AnnonceController extends Controller
 
 public function confirmDelivery(Request $request, Annonce $annonce)
 {
+   try {
+    Log::info('==> Début paiement prestataire');
+    app(\App\Services\PaymentService::class)->payProviders($annonce);
+
+    $annonce->status = 'complétée';
+    $annonce->save();
+
+    return redirect()->route('client.annonces.show', $annonce)
+        ->with('success', 'Service marqué comme complété et prestataire payé.');
+    } catch (\Exception $e) {
+    Log::error('Erreur confirmDelivery : ' . $e->getMessage());
+
+    if (str_contains($e->getMessage(), 'Solde insuffisant')) {
+        return back()->with('insufficient_balance', true);
+    }
+
+    return back()->with('error', 'Une erreur est survenue lors du paiement.');
+    }
     $client = auth()->user();
+    $annonce->load('provider');
 
-    /*dd([
-        'client_id' => $client->id,
-        'delivery_user_id' => $annonce->user_id,
-        'delivery_status' => $delivery->status,
-    ]);*/
-
-
-    // Sécurité : vérifier que le client est bien le propriétaire
-    if ($annonce->user_id !== $client->id || $annonce->status !== 'prise en charge') {
+    if (
+        $annonce->user_id !== $client->id ||
+        $annonce->status !== 'en attente de paiement' ||
+        !$annonce->provider
+    ) {
         abort(403, 'Action non autorisée.');
     }
 
-    $receiver = $annonce->livreur ?? $annonce->provider;
-
-    if (!$receiver) {
-        return back()->with('error', 'Aucun prestataire ou livreur à payer.');
-    }
-
-    $amount = $annonce->price;
-
     try {
-        DB::transaction(function () use ($client, $receiver, $amount, $annonce) {
-            if ($client->wallet->balance < $amount) {
-                throw new \Exception("Solde insuffisant dans le portefeuille.");
-            }
+        Log::info('==> Début paiement prestataire');
 
-            // Débit client
-            $client->wallet->balance -= $amount;
-            $client->wallet->save();
+        app(\App\Services\PaymentService::class)->payProviders($annonce);
 
-            // Crédit prestataire
-            $receiver->wallet->balance += $amount;
-            $receiver->wallet->save();
+        $annonce->status = 'complétée';
+        $annonce->save();
 
-            // Mettre à jour l’annonce
-            $annonce->update([
-                'status' => 'complétée',
-                'is_paid' => true,
-            ]);
-        });
+        Log::info('==> Annonce complétée avec succès');
 
-        return back()->with('success', 'Livraison confirmée et paiement effectué.');
+        return redirect()->route('client.annonces.show', $annonce)
+            ->with('success', 'Service marqué comme complété et prestataire payé.');
     } catch (\Exception $e) {
+        Log::error('Erreur confirmDelivery : ' . $e->getMessage());
         return back()->with('error', $e->getMessage());
     }
+}
+
+    public function payDelivery($id)
+{
+    $annonce = \App\Models\Annonce::findOrFail($id);
+
+    if ($annonce->status !== 'en attente de paiement') {
+        return back()->with('error', 'Cette annonce n’est pas en attente de paiement.');
+    }
+
+    $annonce->status = 'complétée';
+    $annonce->save();
+
+    return back()->with('success', 'Service payé. Mission complétée.');
 }
 
 }

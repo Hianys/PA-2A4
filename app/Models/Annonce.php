@@ -99,4 +99,8 @@ private function trajetEstComplet($from, $to, $segments)
         });
     }
 
+    public function provider()
+    {
+        return $this->belongsTo(User::class, 'provider_id');
+    }
 }

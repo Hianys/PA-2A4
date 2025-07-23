@@ -61,4 +61,44 @@ class PaymentService
             }
         });
     }
+
+    public function payProviders(Annonce $annonce)
+{
+    $client = $annonce->user;
+    $provider = $annonce->provider;
+
+    if (!$provider) {
+        throw new \Exception("Aucun prestataire lié à cette annonce.");
+    }
+
+    $amount = $annonce->price;
+
+    if ($client->wallet->balance < $amount) {
+        throw new \Exception("Solde insuffisant.");
+    }
+
+    DB::transaction(function () use ($client, $provider, $amount, $annonce) {
+        // Débiter le client
+        $client->wallet->balance -= $amount;
+        $client->wallet->save();
+
+        // Créditer le prestataire
+        $provider->wallet->balance += $amount;
+        $provider->wallet->save();
+
+        // Enregistrer la transaction
+        $provider->wallet->transactions()->create([
+            'type' => 'service',
+            'amount' => $amount,
+            'status' => 'success',
+        ]);
+
+        // Marquer l’annonce comme payée et confirmée
+        $annonce->update([
+            'status' => 'complétée',
+            'is_paid' => true,
+            'is_confirmed' => true,
+        ]);
+    });
+}
 }

@@ -21,13 +21,13 @@ Route::get('/changeLocale/{locale}', function (string $locale) {
     return redirect()->back();
 });
 
-//Route de la page d'accueil
+//Route de la page d'accueilleuh
 Route::get('/', function () {
     return view('home');
 })->name('home');
 
 
-//Routes des différents dashboards
+//Routes des différents dashboardeuhs
 Route::middleware(['auth'])->group(function () {
     Route::get('/client/dashboard', function () {
         return view('dashboards.client');
@@ -48,7 +48,7 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
-//Actions utilisateurs admin
+//Actions utilisateurs admineuhs
 Route::middleware(['auth'])->group(function () {
     Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users.index');
     Route::get('/users/{id}', [AdminController::class, 'showUser'])->name('admin.users.show');
@@ -93,10 +93,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/segments/{segment}/refuse', [TransportSegmentController::class, 'refuse'])->name('segments.refuse');
     Route::put('/client/annonces/{annonce}/validate', [ClientAnnonceController::class, 'confirmDelivery'])->name('client.annonces.validate');
     Route::post('/client/annonces/{annonce}/payer', [ClientAnnonceController::class, 'payAnnonce'])->name('client.annonces.payer');
+    Route::post('/delivery/{delivery}/pay', [ClientAnnonceController::class, 'payDelivery'])->name('delivery.pay');
 
 });
 
-//Prise en charge des annonces de type transport pour les Livreurs
+//Prise en charge des annonces de type transport pour les Livreureuhs
 Route::middleware('auth')->group(function () {
     Route::get('/livreur/annonces', [DeliveryAnnonceController::class, 'index'])->name('delivery.annonces.index');
     Route::get('/livreur/annonces/{annonce}', [DeliveryAnnonceController::class, 'show'])->name('delivery.annonces.show');
@@ -112,7 +113,7 @@ Route::middleware('auth')->group(function () {
 
 });
 
-//Gestion des annonces pour les commerçants
+//Gestion des annonces pour les commeuhrçants
 Route::middleware('auth')->group(function () {
     Route::get('commercant/annonces', [TraderAnnonceController::class, 'index'])->name('commercant.annonces.index');
     Route::get('commercant/annonces/create', [TraderAnnonceController::class, 'create'])->name('commercant.annonces.create');
@@ -138,7 +139,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/commercant/consentement/pdf', [TraderAnnonceController::class, 'telechargerPdf'])->name('commercant.consentement.pdf');
 });
 
-//Actions dans le profil de l'utilisateur
+//Actions dans le profil de l'utilisateureuh
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
