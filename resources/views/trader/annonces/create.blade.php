@@ -57,7 +57,7 @@
 
                 <div>
                     <label for="preferred_date" class="block text-sm font-medium text-gray-700">@lang("Preferred date")</label>
-                    <x-text-input type="date" id="preferred_date" name="preferred_date" class="mt-1" value="{{ old('preferred_date') }}" required />
+                    <x-text-input type="date" id="preferred_date" name="preferred_date" class="mt-1" value="{{ old('preferred_date') }}" min="{{ date('Y-m-d') }}" required />
                     <x-input-error :messages="$errors->get('preferred_date')" class="mt-1" />
                 </div>
 

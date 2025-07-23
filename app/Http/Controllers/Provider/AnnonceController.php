@@ -73,7 +73,7 @@ class AnnonceController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'preferred_date' => 'required|date',
+            'preferred_date' => ['required', 'date', 'after_or_equal:today'],
             'price' => 'nullable|numeric',
             'constraints' => 'nullable|string',
             'photo' => 'nullable|image',

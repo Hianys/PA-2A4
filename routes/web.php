@@ -121,10 +121,11 @@ Route::middleware('auth')->group(function () {
     Route::get('commercant/annonces/{annonce}/edit', [TraderAnnonceController::class, 'edit'])->name('commercant.annonces.edit');
     Route::put('commercant/annonces/{annonce}', [TraderAnnonceController::class, 'update'])->name('commercant.annonces.update');
     Route::delete('commercant/annonces/{annonce}', [TraderAnnonceController::class, 'destroy'])->name('commercant.annonces.destroy');
-    Route::patch('commercant/annonces/{annonce}/complete', [TraderAnnonceController::class, 'markCompleted'])->name('commercant.annonces.complete');
+    Route::post('/commercant/annonces/{annonce}/complete', [TraderAnnonceController::class, 'markCompleted'])->name('commercant.annonces.complete');
     Route::get('/commercant/dashboard', [TraderAnnonceController::class, 'dashboard'])->name('trader.dashboard');
     Route::post('/commercant/annonces/{annonce}/payer', [TraderAnnonceController::class, 'payAnnonce'])->name('commercant.annonces.payer');
-
+    Route::post('/commercant/annonces/{annonce}/confirm-payments', [\App\Http\Controllers\Trader\AnnonceController::class, 'confirmPayments'])->name('commercant.annonces.confirmPayments');
+    Route::get('/annonces/{annonce}/facture', [\App\Http\Controllers\Trader\AnnonceController::class, 'facturePdf'])->middleware('auth')->name('annonce.facture.pdf');
 
 
     // Profil commerçant

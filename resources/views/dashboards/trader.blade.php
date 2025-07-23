@@ -47,7 +47,7 @@
                 <h3 class="text-xl font-semibold mb-2">@lang("Your Current Transport Announcements")</h3>
                 @if ($annonces->count())
                     <ul class="space-y-3">
-                        @foreach ($annonces as $annonce)
+                        @foreach ($annonces->where('status', '!=', 'complétée') as $annonce)
                             <li class="border rounded p-4">
                                 <div class="flex justify-between">
                                     <div>

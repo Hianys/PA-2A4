@@ -5,6 +5,22 @@
         </h2>
     </x-slot>
 
+    @php
+    function haversine($lat1, $lon1, $lat2, $lon2) {    
+    if (!$lat1 || !$lon1 || !$lat2 || !$lon2) return 0;
+    $earthRadius = 6371;
+    $lat1 = deg2rad($lat1);
+    $lon1 = deg2rad($lon1);
+    $lat2 = deg2rad($lat2);
+    $lon2 = deg2rad($lon2);
+    $deltaLat = $lat2 - $lat1;
+    $deltaLon = $lon2 - $lon1;
+    $a = sin($deltaLat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($deltaLon / 2) ** 2;
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    return $earthRadius * $c;
+    }
+    @endphp
+
     <div class="max-w-3xl mx-auto py-6">
         <div class="bg-white rounded shadow p-6 space-y-4">
             <h3 class="text-2xl font-bold">{{ $annonce->title }}</h3>
@@ -65,17 +81,77 @@
             </form>
         </div>
     @elseif($annonce->livreur && $annonce->is_paid && !$annonce->is_confirmed)
-        <div class="mt-4">
-            <form method="POST" action="{{ route('commercant.annonces.confirmer', $annonce) }}">
-                @csrf
-                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                    Confirmer la livraison
-                </button>
-            </form>
-        </div>
-    @endif
+    <div class="mt-4">
+        <form method="POST" action="{{ route('commercant.annonces.confirmer', $annonce) }}">
+            @csrf
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                Confirmer la livraison
+            </button>
+        </form>
+    </div>
 @endif
 
+@if ($annonce->status === 'complétée')
+    <div class="bg-white shadow rounded-lg p-6 mt-6">
+        <h3 class="text-lg font-semibold mb-4">Récapitulatif des livreurs rémunérés</h3>
+
+        @php
+            $segments = $annonce->segments()->where('status', 'accepté')->get();
+            $totalDistance = $segments->sum(function($s) {
+                return haversine($s->from_lat, $s->from_lng, $s->to_lat, $s->to_lng);
+            });
+            $grouped = $segments->groupBy('delivery_id');
+        @endphp
+
+        <table class="w-full text-sm text-left border">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="p-2 border">Livreur</th>
+                    <th class="p-2 border">Distance totale</th>
+                    <th class="p-2 border">Part</th>
+                    <th class="p-2 border">Montant reçu</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($grouped as $livreurId => $livreurSegments)
+                    @php
+                        $livreur = $livreurSegments->first()->delivery;
+                        $livreurDistance = $livreurSegments->sum(function($s) {
+                            return haversine($s->from_lat, $s->from_lng, $s->to_lat, $s->to_lng);
+                        });
+                        $part = $totalDistance > 0 ? $livreurDistance / $totalDistance : 0;
+                        $montant = round($annonce->price * $part, 2);
+                    @endphp
+                    <tr class="border-t">
+                        <td class="p-2 border">{{ $livreur->name }}</td>
+                        <td class="p-2 border">{{ number_format($livreurDistance, 2) }} km</td>
+                        <td class="p-2 border">{{ number_format($part * 100, 1) }} %</td>
+                        <td class="p-2 border">{{ number_format($montant, 2) }} €</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+@endif
+
+@if($annonce->status === 'prise en charge')
+    <div class="mt-4">
+        <form method="POST" action="{{ route('commercant.annonces.complete', $annonce) }}">
+            @csrf
+            <button type="submit" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+                Marquer comme complétée
+            </button>
+        </form>
+    </div>
+@endif
+@endif
+
+@if($annonce->status === 'complétée')
+    <a href="{{ route('annonce.facture.pdf', $annonce) }}"
+       class="inline-block bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 mt-4">
+        Télécharger la facture PDF
+    </a>
+@endif
 {{-- Segments à valider (comme chez le client) --}}
 @if ($annonce->segments->where('status', 'en attente')->count())
     <div class="mt-6 bg-white shadow rounded-lg p-6">

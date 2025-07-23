@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Trader;
 
+use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Annonce;
@@ -78,7 +79,7 @@ class AnnonceController extends Controller
    $validated = $request->validate([
     'title' => 'required|string|max:255',
     'description' => 'nullable|string',
-    'preferred_date' => 'required|date',
+    'preferred_date' => ['required', 'date', 'after_or_equal:today'],
     'price' => 'nullable|numeric',
     'constraints' => 'nullable|string',
     'kbis' => 'nullable|image',
@@ -161,32 +162,62 @@ return redirect()->route('commercant.annonces.index')->with('success', 'Annonce 
         return redirect()->route('commercant.annonces.index')->with('success', 'Annonce supprimée.');
     }
 
-    public function markCompleted(Annonce $annonce)
-    {
-        $user = Auth::user();
-        if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
-            abort(403);
+public function markCompleted(Annonce $annonce, PaymentService $paymentService)
+{
+    $user = Auth::user();
+
+    if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
+        abort(403);
+    }
+
+    if ($annonce->status !== 'prise en charge') {
+        return redirect()->back()->with('error', 'La mission n\'est pas en cours.');
+    }
+
+    try {
+        // Étape 1 : Paiement et blocage
+        $paymentService->processSegmentedPayment($annonce);
+
+        // Étape 2 : Libération immédiate des fonds
+        $segments = $annonce->segments()->where('status', 'accepté')->get();
+        $grouped = $segments->groupBy('delivery_id');
+
+        foreach ($grouped as $livreurId => $livreurSegments) {
+            $livreur = $livreurSegments->first()->delivery;
+
+            // Transactions en attente
+            $transactions = $livreur->wallet->transactions()
+                ->where('status', 'pending')
+                ->where('type', 'delivery')
+                ->latest()
+                ->get();
+
+            foreach ($transactions as $transaction) {
+                $amount = $transaction->amount;
+
+                if ($livreur->wallet->blocked_balance >= $amount) {
+                    $livreur->wallet->blocked_balance -= $amount;
+                    $livreur->wallet->balance += $amount;
+
+                    $transaction->status = 'completed';
+                    $transaction->save();
+                }
+            }
+
+            $livreur->wallet->save();
         }
 
-        if ($annonce->status !== 'prise en charges') {
-            return redirect()->back()->with('error', 'La mission n\'est pas en cours.');
-        }
-
+        // Mise à jour de l’annonce
         $annonce->status = 'complétée';
+        $annonce->is_paid = true;
+        $annonce->is_confirmed = true;
         $annonce->save();
 
-        return redirect()->route('commercant.annonces.index')->with('success', 'Mission marquée comme complétée.');
+        return redirect()->route('commercant.annonces.index')->with('success', 'Mission complétée et fonds versés aux livreurs.');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Erreur lors du paiement : ' . $e->getMessage());
     }
-
-    // Gestion du profil commerçant (enseigne, adresse, document)
-    public function editProfile()
-    {
-        $user = Auth::user();
-        if (!$user->isTrader() && !$user->isAdmin()) {
-            abort(403);
-        }
-        return view('trader.profile', compact('user'));
-    }
+}
 
    public function updateProfile(\App\Http\Requests\TraderProfileUpdateRequest $request)
 {
@@ -321,15 +352,21 @@ public function telechargerPdf()
     $commercant->wallet->balance -= $amount;
     $commercant->wallet->save();
 
+    $commercant->wallet->transactions()->create([
+        'type' => 'delivery',
+        'amount' => $amount,
+        'status' => 'completed', // car l’argent a été débité immédiatement
+    ]);
+
     // Blocage sur le compte du livreur
     $livreur->wallet->blocked_balance += $amount;
     $livreur->wallet->save();
 
-    // Créer transaction bloquée
+    // Créer transaction bloquée pour le livreur
     $livreur->wallet->transactions()->create([
         'type' => 'delivery',
         'amount' => $amount,
-        'status' => 'pending',
+        'status' => 'pending', // elle sera confirmée plus tard
     ]);
 
     // Marquer annonce comme payée
@@ -383,4 +420,132 @@ public function confirmer(Request $request, \App\Models\Annonce $annonce)
     return back()->with('success', 'Livraison confirmée, paiement libéré au livreur.');
 }
 
+
+    public function confirmPayments(Annonce $annonce)
+{
+    $user = Auth::user();
+
+    if ((!$user->isTrader() && !$user->isAdmin()) || $annonce->user_id !== $user->id) {
+        abort(403);
+    }
+
+    if ($annonce->status !== 'complétée') {
+        return back()->with('error', 'L\'annonce n\'est pas encore marquée comme complétée.');
+    }
+
+    $segments = $annonce->segments()->where('status', 'accepté')->get();
+    $grouped = $segments->groupBy('delivery_id');
+
+    foreach ($grouped as $livreurId => $livreurSegments) {
+        $livreur = $livreurSegments->first()->delivery;
+        $totalAmount = 0;
+
+        // Trouver les transactions en attente
+        $transactions = $livreur->wallet->transactions()
+            ->where('status', 'pending')
+            ->where('type', 'delivery')
+            ->latest()
+            ->get();
+
+        foreach ($transactions as $transaction) {
+            $amount = $transaction->amount;
+
+            if ($livreur->wallet->blocked_balance >= $amount) {
+                $livreur->wallet->blocked_balance -= $amount;
+                $livreur->wallet->balance += $amount;
+                $totalAmount += $amount;
+
+                $transaction->status = 'completed';
+                $transaction->save();
+            }
+        }
+
+        $livreur->wallet->save();
+    }
+
+    return back()->with('success', 'Fonds débloqués et transférés aux livreurs.');
+}
+
+    public function mesAnnonces()
+{
+    $user = auth()->user();
+
+    // 1. Annonces où il est le livreur principal
+    $annoncesPrincipales = \App\Models\Annonce::where('livreur_id', $user->id)->get();
+
+    // 2. Annonces où il a au moins un segment
+    $annoncesSegments = \App\Models\Annonce::whereHas('segments', function ($query) use ($user) {
+        $query->where('delivery_id', $user->id);
+    })->get();
+
+    // Fusionner et enlever les doublons
+    $annonces = $annoncesPrincipales->merge($annoncesSegments)->unique('id');
+
+    return view('delivery.annonces.mes', compact('annonces'));
+}
+
+public function facturePdf(Annonce $annonce)
+{
+    $user = Auth::user();
+
+    $isOwner = $annonce->user_id === $user->id;
+    $isLivreur = $annonce->segments()
+        ->where('delivery_id', $user->id)
+        ->exists();
+
+    if (!$isOwner && !$isLivreur) {
+        abort(403, 'Accès non autorisé à cette facture.');
+    }
+
+    $segments = $annonce->segments()->where('status', 'accepté')->get();
+
+    $totalDistance = $segments->sum(function ($s) {
+        return $this->haversine($s->from_lat, $s->from_lng, $s->to_lat, $s->to_lng);
+    });
+
+    $grouped = $segments->groupBy('delivery_id');
+
+    $parts = [];
+
+    foreach ($grouped as $livreurId => $livreurSegments) {
+        $livreur = $livreurSegments->first()->delivery;
+        $livreurDistance = $livreurSegments->sum(function ($s) {
+            return $this->haversine($s->from_lat, $s->from_lng, $s->to_lat, $s->to_lng);
+        });
+        $part = $totalDistance > 0 ? $livreurDistance / $totalDistance : 0;
+        $montant = round($annonce->price * $part, 2);
+
+        $parts[] = [
+            'livreur' => $livreur->name,
+            'distance' => round($livreurDistance, 2),
+            'part' => round($part * 100, 1),
+            'montant' => $montant,
+        ];
+    }
+
+    $pdf = Pdf::loadView('pdfs.facture', [
+        'annonce' => $annonce,
+        'parts' => $parts,
+        'total' => $annonce->price,
+    ]);
+
+    return $pdf->download('facture-annonce-' . $annonce->id . '.pdf');
+}
+
+private function haversine($lat1, $lon1, $lat2, $lon2)
+{
+    if (!$lat1 || !$lon1 || !$lat2 || !$lon2) return 0;
+
+    $earthRadius = 6371;
+    $lat1 = deg2rad($lat1);
+    $lon1 = deg2rad($lon1);
+    $lat2 = deg2rad($lat2);
+    $lon2 = deg2rad($lon2);
+    $deltaLat = $lat2 - $lat1;
+    $deltaLon = $lon2 - $lon1;
+    $a = sin($deltaLat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($deltaLon / 2) ** 2;
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+    return $earthRadius * $c;
+}
 }

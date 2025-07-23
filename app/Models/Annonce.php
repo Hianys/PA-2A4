@@ -92,5 +92,11 @@ private function trajetEstComplet($from, $to, $segments)
 
     return false;
 }
+    public function getTotalDistance(): float
+    {
+        return $this->segments->sum(function ($segment) {
+            return $segment->distance();
+        });
+    }
 
 }
