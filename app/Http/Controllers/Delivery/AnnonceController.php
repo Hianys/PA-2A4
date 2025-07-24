@@ -44,19 +44,22 @@ class AnnonceController extends Controller
 }
 
     public function show(Annonce $annonce)
-    {
-        if (!auth()->user()->isDelivery() && !auth()->user()->isAdmin()) {
-            abort(403);
-        }
-
-        if ($annonce->status === 'archivée') {
-            abort(404, 'Cette annonce est archivée.');
-        }
-        $annonce->load('segments.delivery');
-        $segments = $annonce->segments;
-
-        return view('delivery.annonces.show', compact('annonce', 'segments'));
+{
+    if (!auth()->user()->isDelivery() && !auth()->user()->isAdmin()) {
+        abort(403);
     }
+
+    if ($annonce->status === 'archivée') {
+        abort(404, 'Cette annonce est archivée.');
+    }
+
+    // recharge les relations et l'objet
+    $annonce->refresh();
+    $annonce->load('segments.delivery');
+    $segments = $annonce->segments;
+
+    return view('delivery.annonces.show', compact('annonce', 'segments'));
+}
 
     public function confirmDelivery(Request $request, \App\Models\Annonce $delivery)
     {
@@ -115,21 +118,34 @@ class AnnonceController extends Controller
 
     public function marquerEnAttenteDePaiement(Annonce $annonce)
 {
-    if ($annonce->status !== 'prise en charge') {
-        return back()->with('error', 'Cette annonce n’est pas encore en prise en charge.');
+    $livreur = auth()->user();
+
+    // Vérification
+    if (!$livreur->isDelivery()) {
+        abort(403, 'Vous n’êtes pas livreur.');
     }
 
-    // Vérifier que le livreur actuel a bien participé à l’annonce
-    if ($annonce->livreur_id !== auth()->id()) {
-        return back()->with('error', 'Vous n’êtes pas autorisé à confirmer cette livraison.');
+    // Le livreur doit avoir participé à l'annonce
+    $segments = $annonce->segments()->where('delivery_id', $livreur->id)->get();
+    if ($segments->isEmpty()) {
+        return back()->with('error', 'Vous ne participez pas à cette livraison.');
     }
 
-    // On passe au statut "en attente de paiement"
-    $annonce->status = 'en attente de paiement';
-    $annonce->save();
+    // Mettre à jour les segments du livreur en "en attente de paiement"
+    foreach ($segments as $segment) {
+        $segment->status = 'en attente de paiement';
+        $segment->save();
+    }
 
-    return back()->with('success', 'Annonce marquée comme terminée. En attente de paiement.');
+    // Mettre l'annonce en "en attente de paiement" (si pas déjà)
+    if ($annonce->status !== 'en attente de paiement') {
+        $annonce->status = 'en attente de paiement';
+        $annonce->save();
+    }
+
+    return back()->with('success', 'Annonce et segments marqués en attente de paiement.');
 }
+
 
     public function mesAnnonces()
 {

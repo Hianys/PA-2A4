@@ -19,22 +19,27 @@ class TransportSegmentController extends Controller
 
     public function store(Request $request, Annonce $annonce)
 {
+    //  Bloque la création si le trajet est déjà couvert
     if (!$annonce->canReceiveSegment()) {
-        return back()->with('error', 'Le trajet est déjà complet. Impossible d’ajouter un nouveau segment.');
+        return back()->with('error', 'Le trajet est déjà couvert. Aucun nouveau segment ne peut être proposé.');
     }
 
+    // Validation des champs
     $request->validate([
         'from_city' => 'required|string|max:255',
         'to_city' => 'required|string|max:255',
     ]);
 
+    // Vérification simple
     if ($request->from_city === $request->to_city) {
         return back()->with('error', 'La ville de départ et d’arrivée doivent être différentes.');
     }
 
+    //  Coordonnées
     [$fromLng, $fromLat] = getCoordinates($request->from_city);
     [$toLng, $toLat] = getCoordinates($request->to_city);
 
+    //  Création du segment
     TransportSegment::create([
         'annonce_id' => $annonce->id,
         'delivery_id' => auth()->id(),
@@ -167,6 +172,29 @@ class TransportSegmentController extends Controller
     }
 
     return false;
+}
+
+public function markAsDone(Request $request, TransportSegment $segment)
+{
+    $user = auth()->user();
+
+    if ($segment->delivery_id !== $user->id) {
+        return back()->with('error', 'Vous n\'êtes pas autorisé à valider ce segment.');
+    }
+
+    $segment->status = 'réalisé';
+    $segment->save();
+
+    // Vérifier si TOUS les segments sont réalisés
+    $annonce = $segment->annonce;
+    $tousRealises = $annonce->segments()->where('status', '!=', 'réalisé')->count() === 0;
+
+    if ($tousRealises) {
+        $annonce->status = 'en attente de paiement';
+        $annonce->save();
+    }
+
+    return back()->with('success', 'Segment validé. Merci !');
 }
 
     

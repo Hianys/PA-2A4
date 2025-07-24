@@ -38,7 +38,7 @@
 
             @if (session('error'))
                 <div class="text-red-600 text-sm mb-3">{{ session('error') }}</div>
-            @endif
+            @endif   
 
             {{-- Affiche le bouton pour accepter l’annonce si elle est encore disponible --}}
             @if ($annonce->status === 'publiée')

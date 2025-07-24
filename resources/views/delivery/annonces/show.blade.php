@@ -22,9 +22,10 @@
                     <p><strong>@lang('From'):</strong> {{ $annonce->from_city }}</p>
                     <p><strong>@lang('To'):</strong> {{ $annonce->to_city }}</p>
                     <p><strong>@lang('Preferred date'):</strong> {{ \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') }}</p>
-                </div>
-            @endif
-        </div>
+                    <p><strong>@lang('Status'):</strong> {{ ucfirst($annonce->status) }}</p>
+                    
+@endif
+   
 
         {{-- Carte interactive --}}
         <x-leaflet-annonce-map :annonce="$annonce" :segments="$segments" />
@@ -90,20 +91,9 @@
         <h3 class="text-md font-semibold text-red-600">@lang('No more segments can be proposed for this delivery.')</h3>
     </div>
 @endif
-@if ($annonce->status === 'prise en charge' && $annonce->livreur_id === auth()->id())
+@if ($annonce->status === 'prise en charge' && $segments->where('delivery_id', auth()->id())->count() > 0)
     <div class="mt-6">
         <form method="POST" action="{{ route('delivery.annonces.markPending', $annonce) }}">
-            @csrf
-            <button type="submit" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
-                Confirmer la livraison (passer en attente de paiement)
-            </button>
-        </form>
-    </div>
-@endif
-
-@if ($annonce->status === 'prise en charge' && $annonce->livreur_id === auth()->id())
-    <div class="mt-6">
-        <form method="POST" action="{{ route('delivery.annonces.markAsWaitingPayment', $annonce) }}">
             @csrf
             <button type="submit"
                     class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
@@ -112,6 +102,9 @@
         </form>
     </div>
 @endif
+
+
+
     </div>
     <x-autocomplete-script />
 </x-app-layout>

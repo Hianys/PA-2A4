@@ -10,10 +10,10 @@ class PaymentService
     public function processSegmentedPayment(Annonce $annonce)
     {
         $commercant = $annonce->user;
-        $segments = $annonce->segments()->where('status', 'accepté')->get();
+    $segments = $annonce->segments->where('status', 'en attente de paiement');
 
         if ($segments->isEmpty()) {
-            throw new \Exception("Aucun segment accepté.");
+            throw new \Exception("Aucun segment en attente de paiement.");
         }
 
         $totalDistance = $annonce->getTotalDistance();
@@ -38,28 +38,35 @@ class PaymentService
             $grouped = $segments->groupBy('delivery_id');
 
             foreach ($grouped as $livreurId => $livreurSegments) {
-                $livreur = $livreurSegments->first()->delivery;
+    $livreur = $livreurSegments->first()->delivery;
 
-                // Distance totale assurée par ce livreur
-                $livreurDistance = $livreurSegments->sum(function ($s) {
-                    return $s->distance();
-                });
+    // Distance totale assurée par ce livreur
+    $livreurDistance = $livreurSegments->sum(function ($s) {
+        return $s->distance();
+    });
 
-                $part = $livreurDistance / $totalDistance;
-                $livreurAmount = round($amount * $part, 2);
+    $part = $livreurDistance / $totalDistance;
+    $livreurAmount = round($amount * $part, 2);
 
-                // Créditer le compte bloqué
-                $livreur->wallet->blocked_balance += $livreurAmount;
-                $livreur->wallet->save();
+    // Créditer le compte bloqué
+    $livreur->wallet->blocked_balance += $livreurAmount;
+    $livreur->wallet->save();
 
-                // Créer une transaction en attente
-                $livreur->wallet->transactions()->create([
-                    'type' => 'delivery',
-                    'amount' => $livreurAmount,
-                    'status' => 'pending',
-                ]);
-            }
+    // Créer une transaction en attente
+    $transaction = $livreur->wallet->transactions()->create([
+        'type' => 'delivery',
+        'amount' => $livreurAmount,
+        'status' => 'pending',
+    ]);
+
+    $this->autoReleaseFunds($livreur, $transaction);
+}
         });
+
+        $this->autoReleaseAllPending($commercant);
+foreach ($segments as $segment) {
+    $this->autoReleaseAllPending($segment->delivery);
+}
     }
 
     public function payProviders(Annonce $annonce)
@@ -100,5 +107,35 @@ class PaymentService
             'is_confirmed' => true,
         ]);
     });
+}
+
+protected function autoReleaseFunds($livreur, $transaction)
+{
+    $amount = $transaction->amount;
+
+    $livreur->wallet->balance += $amount;
+    $livreur->wallet->blocked_balance -= $amount;
+    $livreur->wallet->save();
+
+    $transaction->update([
+        'status' => 'completed',
+    ]);
+}
+
+public function autoReleaseAllPending($user)
+{
+    $wallet = $user->wallet;
+
+    $pendingTransactions = $wallet->transactions()
+        ->where('status', 'pending')
+        ->get();
+
+    foreach ($pendingTransactions as $transaction) {
+        $wallet->balance += $transaction->amount;
+        $wallet->blocked_balance -= $transaction->amount;
+        $wallet->save();
+
+        $transaction->update(['status' => 'completed']);
+    }
 }
 }

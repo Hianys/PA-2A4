@@ -38,7 +38,8 @@
 
                 <div>
                     <label for="preferred_date" class="block text-sm font-medium text-gray-700">Date souhaitée</label>
-                    <x-text-input type="date" id="preferred_date" name="preferred_date" class="mt-1" value="{{ old('preferred_date') }}" />
+                    <x-text-input type="date" id="preferred_date" name="preferred_date" class="mt-1" value="{{ old('preferred_date') }}" min="{{ \Carbon\Carbon::now()->toDateString() }}" />
+
                     <x-input-error :messages="$errors->get('preferred_date')" class="mt-1" />
                 </div>
 

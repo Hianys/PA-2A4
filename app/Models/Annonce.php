@@ -46,17 +46,11 @@ class Annonce extends Model
     
 public function canReceiveSegment(): bool
 {
-    // Segments acceptés
-    $segments = $this->segments()->where('status', 'accepté')->get();
+    $segmentsAcceptes = $this->segments()->where('status', 'accepté')->get();
 
-    // Vérifie si le trajet complet est déjà couvert
-    $trajetComplet = $this->trajetEstComplet($this->from_city, $this->to_city, $segments);
+    $trajetComplet = $this->trajetEstComplet($this->from_city, $this->to_city, $segmentsAcceptes);
 
-    // Vérifie s’il existe encore des segments "en attente"
-    $enAttente = $this->segments()->where('status', 'en attente')->exists();
-
-    // On autorise de nouveaux segments seulement si le trajet N’EST PAS encore complet ou s’il reste des en attente
-    return !$trajetComplet || $enAttente;
+    return !$trajetComplet;
 }
 
 private function trajetEstComplet($from, $to, $segments)

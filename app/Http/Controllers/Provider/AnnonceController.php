@@ -192,7 +192,7 @@ class AnnonceController extends Controller
 
     // Associe la mission au prestataire connecté
     $annonce->provider_id = $user->id;
-    $annonce->status = 'prise en charge';
+    $annonce->status = 'prise en charge';   
     $annonce->save();
 
     return redirect()->route('provider.dashboard')->with('success', 'Annonce acceptée avec succès.');
