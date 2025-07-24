@@ -44,7 +44,7 @@
                                     @lang('Announce') :
                                     <a href="{{ route('delivery.annonces.show', $segment->annonce_id) }}"
                                        class="text-indigo-600 hover:underline">
-                                        {{ $segment->annonce->title ?? @lang('deleted announcement') }}
+                                        {{ $segment->annonce ? $segment->annonce->title : __('deleted announcement') }}
                                     </a>
                                 </p>
                                 <p class="font-semibold text-lg">

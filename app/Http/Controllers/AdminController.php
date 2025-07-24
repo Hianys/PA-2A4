@@ -274,6 +274,15 @@ class AdminController extends Controller
             ->with('success', 'Segment supprimé.');
     }
 
+    public function indexDocuments()
+    {
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'Accès interdit');
+        }
+        return view('admin.documents.index');
+    }
+
+
 
 
     public function documents()
@@ -283,7 +292,7 @@ class AdminController extends Controller
                  ->whereNotNull('kbis')
                  ->get();
 
-    return view('admin.documents', compact('users'));
+    return view('admin.documents.documents', compact('users'));
 }
 
     public function toggleKbisValidation($id)
@@ -296,8 +305,26 @@ class AdminController extends Controller
 
     $message = $user->kbis_valide ? 'KBIS validé avec succès.' : 'Validation du KBIS annulée.';
 
-    return redirect()->route('admin.documents')->with('success', $message);
+    return redirect()->route('admin.documents.documents_commercant')->with('success', $message);
 }
+
+    public function indexLivreurs()
+    {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Accès interdit');
+        }
+
+        // Récupérer les livreureuhs qui ont envoyé leurs documents mais qui ne sont pas encore validés
+
+        $livreurs = \App\Models\User::where('role', 'livreur')
+            ->whereNotNull('identity_document')
+            ->whereNotNull('driver_license')
+            ->where('documents_verified', false)
+            ->get();
+
+        return view('admin.documents.documents_livreurs', compact('livreurs'));
+    }
+
 
  public function validateDocuments($id)
 {
@@ -309,7 +336,7 @@ class AdminController extends Controller
     $user->documents_verified = true;
     $user->save();
 
-    return redirect()->route('admin.dashboard')->with('success', 'Documents validés.');
+    return redirect()->back()->with('success', 'Documents validés.');
 }
 
 }

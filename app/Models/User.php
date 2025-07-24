@@ -34,6 +34,12 @@ class User extends Authenticatable
         'kbis_path',
     ];
 
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'documents_verified' => 'boolean',
+    ];
+
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -49,16 +55,6 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'documents_verified' => 'boolean',
-            'identity_document' => 'string',
-            'driver_license' => 'string',
-        ];
-    }
 
     public function annonces()
     {

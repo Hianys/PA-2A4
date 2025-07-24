@@ -15,16 +15,13 @@
             </a>
         </div>
 
-        {{-- List of announcements --}}
-        @php
-            $annonces_a_venir = $annonces->filter(fn($a) => $a->preferred_date >= now());
-        @endphp
 
-        @if ($annonces_a_venir->count())
+        {{-- List of announcements --}}
+        @if ($annonces->count())
             <div class="bg-white shadow rounded-lg p-6">
                 <h3 class="text-lg font-semibold mb-4">@lang("Your Service Offers")</h3>
                 <ul class="space-y-4">
-                    @foreach ($annonces_a_venir as $annonce)
+                    @foreach ($annonces as $annonce)
                         <li class="border rounded p-4">
                             <div class="flex justify-between items-center">
                                 <div>
@@ -54,7 +51,7 @@
                 </ul>
             </div>
         @else
-            <p class="text-center text-gray-500">@lang("No upcoming service offers at the moment.")</p>
+            <p class="text-center text-gray-500">@lang("No service offers at the moment.")</p>
         @endif
     </div>
 </x-app-layout>

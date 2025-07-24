@@ -57,10 +57,6 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/admin/users/{id}/promote', [AdminController::class, 'promote'])->name('admin.promote');
     Route::patch('/admin/users/{id}/demote', [AdminController::class, 'demote'])->name('admin.demote');
     Route::delete('/admin/users/{id}', [AdminController::class, 'destroy'])->name('admin.delete');
-    Route::get('/livreur/documents', [ProfileController::class, 'documents'])->name('livreur.documents');
-    Route::post('/livreur/documents', [ProfileController::class, 'uploadDocuments'])->name('livreur.documents.upload');
-    Route::get('/admin/documents', [AdminController::class, 'documents'])->name('admin.documents');
-    Route::patch('/admin/kbis/{id}/toggle', [AdminController::class, 'toggleKbisValidation'])->name('admin.kbis.toggle');
 
     Route::get('/admin/annonces', [AdminController::class, 'annoncesIndex'])->name('admin.annonces.index');
     Route::get('/admin/annonces/{annonce}', [AdminController::class, 'annoncesShow'])->name('admin.annonces.show');
@@ -75,8 +71,11 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/admin/segments/{segment}', [AdminController::class, 'segmentsUpdate'])->name('admin.segments.update');
     Route::delete('/admin/segments/{segment}', [AdminController::class, 'segmentsDestroy'])->name('admin.segments.destroy');
 
-
-
+    Route::get('/admin/documents', [AdminController::class, 'indexDocuments'])->name('admin.documents.index');
+    Route::get('/admin/documents/livreurs', [AdminController::class, 'indexLivreurs'])->name('admin.delivery.documents');
+    Route::post('/livreurs/documents/validate/{id}', [AdminController::class, 'validateDocuments'])->name('livreurs.documents.validate');
+    Route::get('/admin/documents/commercants', [AdminController::class, 'documents'])->name('admin.trader.documents');
+    Route::patch('/admin/kbis/{id}/toggle', [AdminController::class, 'toggleKbisValidation'])->name('admin.kbis.toggle');
 
 });
 
@@ -100,16 +99,15 @@ Route::middleware(['auth'])->group(function () {
 //Prise en charge des annonces de type transport pour les Livreureuhs
 Route::middleware('auth')->group(function () {
     Route::get('/livreur/annonces', [DeliveryAnnonceController::class, 'index'])->name('delivery.annonces.index');
+    Route::get('/livreur/documents', [ProfileController::class, 'documents'])->name('delivery.documents');
+    Route::post('/livreur/documents', [ProfileController::class, 'uploadDocuments'])->name('delivery.documents.upload');
     Route::get('/livreur/annonces/{annonce}', [DeliveryAnnonceController::class, 'show'])->name('delivery.annonces.show');
     Route::post('/livreur/annonces/{annonce}/segment', [TransportSegmentController::class, 'store'])->name('segments.store');
     Route::get('/livreur/mes-livraisons', [TransportSegmentController::class, 'mesLivraisons'])->name('delivery.segments.index');
     Route::patch('livreur/segments/{segment}/status', [TransportSegmentController::class, 'updateStatus'])->name('segments.updateStatus');
     Route::post('/livreur/annonces/{annonce}/confirmer', [DeliveryAnnonceController::class, 'confirmerAnnonce'])->name('delivery.annonces.confirmer');
     Route::post('/livreur/annonces/{annonce}/marquer-en-attente', [DeliveryAnnonceController::class, 'marquerEnAttenteDePaiement'])->name('delivery.annonces.markPending');
-    Route::post('/delivery/annonces/{annonce}/mark-as-waiting-payment', [DeliveryAnnonceController::class, 'marquerEnAttenteDePaiement'])->name('delivery.annonces.markAsWaitingPayment');
-    Route::get('/delivery/mes-annonces', [DeliveryAnnonceController::class, 'mesAnnonces'])->name('delivery.annonces.mes');
-
-
+    Route::post('/livreur/annonces/{annonce}/mark-as-waiting-payment', [DeliveryAnnonceController::class, 'marquerEnAttenteDePaiement'])->name('delivery.annonces.markAsWaitingPayment');
 
 });
 

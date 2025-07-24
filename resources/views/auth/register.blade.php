@@ -44,11 +44,11 @@
             <x-input-label for="role" :value="__('Rôle')" />
 
             <select id="role" name="role" required class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:ring focus:ring-indigo-200">
-                <option value="" hidden selected>-- @lang("Choose a role") --</option>
-                <option value="client">@lang("Client")</option>
-                <option value="livreur">@lang("Delivery Person")</option>
-                <option value="commercant">@lang("Merchant")</option>
-                <option value="prestataire">@lang("Service Provider")</option>
+                <option value="" hidden selected>-- Choisissez un rôle --</option>
+                <option value="client">Client</option>
+                <option value="livreur">Livreur</option>
+                <option value="commercant">Commerçant</option>
+                <option value="prestataire">Prestataire</option>
             </select>
 
             <x-input-error :messages="$errors->get('role')" class="mt-2" />
@@ -57,11 +57,11 @@
 
         <div class="flex items-center justify-end mt-4">
             <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
-                @lang('already registered? Click here to log in')
+                {{ __('Déjà inscrit ?') }}
             </a>
 
             <x-primary-button class="ms-4">
-                @lang("Register")
+                {{ __("S'inscrire") }}
             </x-primary-button>
         </div>
     </form>

@@ -13,36 +13,36 @@
 </head>
 <body>
 
-    <h1>Facture Livraison</h1>
-    <p><strong>Annonce #{{ $annonce->id }}</strong></p>
-    <p><strong>Titre :</strong> {{ $annonce->title }}</p>
-    <p><strong>Date :</strong> {{ \Carbon\Carbon::now()->format('d/m/Y') }}</p>
-    <p><strong>Montant total :</strong> {{ number_format($total, 2) }} €</p>
+<h1>Facture Livraison</h1>
+<p><strong>Annonce #{{ $annonce->id }}</strong></p>
+<p><strong>Titre :</strong> {{ $annonce->title }}</p>
+<p><strong>Date :</strong> {{ \Carbon\Carbon::now()->format('d/m/Y') }}</p>
+<p><strong>Montant total :</strong> {{ number_format($total, 2) }} €</p>
 
-    <h2 style="margin-top: 30px;">Répartition des paiements</h2>
+<h2 style="margin-top: 30px;">Répartition des paiements</h2>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Livreur</th>
-                <th>Distance (km)</th>
-                <th>Part (%)</th>
-                <th>Montant (€)</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($parts as $part)
-                <tr>
-                    <td>{{ $part['livreur'] }}</td>
-                    <td>{{ number_format($part['distance'], 2) }}</td>
-                    <td>{{ number_format($part['part'], 1) }}%</td>
-                    <td>{{ number_format($part['montant'], 2) }} €</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+<table>
+    <thead>
+    <tr>
+        <th>Livreur</th>
+        <th>Distance (km)</th>
+        <th>Part (%)</th>
+        <th>Montant (€)</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach($parts as $part)
+        <tr>
+            <td>{{ $part['livreur'] }}</td>
+            <td>{{ number_format($part['distance'], 2) }}</td>
+            <td>{{ number_format($part['part'], 1) }}%</td>
+            <td>{{ number_format($part['montant'], 2) }} €</td>
+        </tr>
+    @endforeach
+    </tbody>
+</table>
 
-    <p style="margin-top: 30px;">Merci pour votre confiance.</p>
+<p style="margin-top: 30px;">Merci pour votre confiance.</p>
 
 </body>
 </html>

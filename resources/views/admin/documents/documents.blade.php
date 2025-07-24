@@ -8,7 +8,7 @@
             <div class="bg-white shadow p-4 rounded">
                 <h3 class="font-semibold">{{ $user->name }}</h3>
                 <p>Email : {{ $user->email }}</p>
-                <p>KBIS : 
+                <p>KBIS :
                     @if ($user->kbis)
                         <a href="{{ asset('storage/' . $user->kbis) }}" target="_blank" class="text-blue-600 underline">Voir le fichier</a>
                     @else

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -63,7 +64,7 @@ class ProfileController extends Controller
      */
     public function documents(): View
     {
-        return view('profile.documents');
+        return view('delivery.documents');
     }
 
     /**
@@ -78,27 +79,12 @@ class ProfileController extends Controller
 
         $user = Auth::user();
 
-        // Stockage des fichiers dans le disque "public"
-        $path1 = $request->file('identity_document')->store('documents', 'public');
-        $path2 = $request->file('driver_license')->store('documents', 'public');
-
-        // Affectation dans l'objet utilisateur
-        $user->identity_document = $path1;
-        $user->driver_license = $path2;
+        $user->identity_document = 'placeholder_identity.pdf'; // ou null
+        $user->driver_license = 'placeholder_license.pdf';
         $user->documents_verified = false;
-
-        // Sauvegarde en base
         $user->save();
 
-        // DEBUG : affiche les chemins enregistrés
-        /*dd([
-            'stored_identity_path' => $path1,
-            'stored_license_path' => $path2,
-            'user_saved' => $user->identity_document && $user->driver_license,
-        ]);*/
-
-        // return back()->with('success', 'Documents envoyés. En attente de validation.');
-        return Redirect::route('delivery.dashboard')->with('status', 'profile-updated');
+        return redirect()->route('delivery.dashboard')->with('success', 'Documents soumis. En attente de validation.');
     }
 
 }
