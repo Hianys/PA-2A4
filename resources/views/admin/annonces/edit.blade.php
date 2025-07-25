@@ -42,7 +42,6 @@
                     <x-input-error :messages="$errors->get('to_city')" class="mt-1" />
                 </div>
 
-                <!-- Champs cachés pour les coordonnées -->
                 <input type="hidden" name="from_latitude" id="from_latitude" value="{{ old('from_latitude', $annonce->from_lat) }}">
                 <input type="hidden" name="from_longitude" id="from_longitude" value="{{ old('from_longitude', $annonce->from_lng) }}">
                 <input type="hidden" name="to_latitude" id="to_latitude" value="{{ old('to_latitude', $annonce->to_lat) }}">

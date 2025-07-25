@@ -15,6 +15,7 @@
 
             <div class="mb-4">
                 <label>Enseigne</label>
+                {{-- old en cas d'erreur prend la premiere valeur, sinon la 2emeuh --}}
                 <input type="text" name="enseigne" value="{{ old('enseigne', auth()->user()->enseigne) }}" class="block w-full rounded p-2 border" />
             </div>
 
@@ -32,6 +33,7 @@
         </form>
 
         @if(auth()->user()->kbis)
+        {{-- asset construit l'url --}}
             <a href="{{ asset('storage/' . auth()->user()->kbis) }}" target="_blank" class="text-blue-600 underline block mt-2">
                 Voir le document
             </a>

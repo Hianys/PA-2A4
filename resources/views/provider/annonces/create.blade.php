@@ -5,14 +5,12 @@
 
     <div class="max-w-4xl mx-auto py-6 space-y-6">
 
-        {{-- Back --}}
         <div>
             <a href="{{ route('provider.annonces.index') }}" class="text-indigo-600 hover:underline text-sm">
                 ← @lang("Back to service list")
             </a>
         </div>
 
-        {{-- Form --}}
         <div class="bg-white shadow rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-4">@lang("New service offer")</h3>
 

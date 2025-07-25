@@ -5,7 +5,6 @@
 
     <div class="max-w-4xl mx-auto py-6 space-y-8">
 
-        {{-- Boutons actions --}}
         <div class="flex justify-between mb-2">
             <a href="{{ route('trader.dashboard') }}" class="text-indigo-600 hover:underline text-sm">
                 ← @lang("Back to dashboard")
@@ -16,7 +15,6 @@
             </a>
         </div>
 
-        {{-- Messages de session --}}
         @if(session('success'))
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded">
                 {{ session('success') }}
@@ -35,7 +33,6 @@
             $complétées = $annonces->where('status', 'complétée');
         @endphp
 
-        {{-- Bloc : Annonces publiées --}}
         @if($publiées->count())
             <div class="bg-white shadow rounded-lg p-6">
                 <h3 class="text-lg font-semibold mb-4">@lang("Published announcements")</h3>
@@ -75,7 +72,6 @@
             </div>
         @endif
 
-        {{-- Bloc : Annonces prises en charge --}}
         @if($prises->count())
             <div class="bg-white shadow rounded-lg p-6">
                 <h3 class="text-lg font-semibold mb-4">@lang("Accepted announcements")</h3>
@@ -123,7 +119,6 @@
             </div>
         @endif
 
-        {{-- Bloc : Annonces complétées --}}
         @if($complétées->count())
             <div class="bg-gray-50 shadow rounded-lg p-6">
                 <h3 class="text-lg font-semibold mb-4">@lang("Completed announcements")</h3>
@@ -163,7 +158,7 @@
             </div>
         @endif
 
-        {{-- Si aucune annonce --}}
+        {{--quand pas d'annonceuh --}}
         @if($publiées->isEmpty() && $prises->isEmpty() && $complétées->isEmpty())
             <p class="text-center text-gray-500">@lang("No announcements yet.")</p>
         @endif

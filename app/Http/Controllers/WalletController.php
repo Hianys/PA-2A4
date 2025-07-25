@@ -34,7 +34,7 @@ class WalletController extends Controller
             'amount' => 'required|numeric|min:1',
         ]);
 
-        // On enregistre le montant dans la session
+        // sauvegarde du montant dans la session
         session(['wallet_recharge_amount' => $request->amount]);
 
         Stripe::setApiKey(config('services.stripe.secret'));
@@ -63,7 +63,7 @@ class WalletController extends Controller
     {
         $user = auth()->user();
 
-        // Vérifier que seul livreur ou prestataire peut retirer
+        // seul la bonne personne peut recup le soldeuh
         if (!in_array($user->role, ['livreur', 'prestataire'])) {
             return back()->with('error', 'Vous n\'êtes pas autorisé à effectuer un retrait.');
         }
@@ -82,7 +82,7 @@ class WalletController extends Controller
         $user->wallet->balance -= $amount;
         $user->wallet->save();
 
-        // Créer une transaction
+        // Créer une transactiongi
         $user->wallet->transactions()->create([
             'type' => 'withdraw',
             'amount' => $amount,

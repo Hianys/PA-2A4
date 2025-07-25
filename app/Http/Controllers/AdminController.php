@@ -9,7 +9,6 @@ use App\Models\User;
 class AdminController extends Controller
 {
 
-    //Dashboard Admin
     public function index()
     {
         if (Auth::user()->role !== 'admin') {
@@ -19,7 +18,6 @@ class AdminController extends Controller
         return view('dashboards.admin');
     }
 
-    //Partie Users
 
     public function users(Request $request)
     {
@@ -103,7 +101,7 @@ class AdminController extends Controller
         return redirect()->route('admin.dashboard')->with('success', 'Utilisateur promu en admin.');
     }
 
-    // Rétrograder un utilisateur en client
+    // passage libreur a client 
     public function demote($id)
     {
         if (Auth::user()->role !== 'admin') {
@@ -124,7 +122,7 @@ class AdminController extends Controller
         }
         $user = User::findOrFail($id);
 
-        // Empêche de se supprimer soi-même
+        // no self killeuh
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.dashboard')->with('error', 'Vous ne pouvez pas vous supprimer vous-même.');
         }
@@ -134,7 +132,6 @@ class AdminController extends Controller
         return redirect()->route('admin.dashboard')->with('success', 'Utilisateur supprimé.');
     }
 
-    //Partie Annonces
 
     public function annoncesIndex()
     {
@@ -278,7 +275,7 @@ class AdminController extends Controller
 
     public function documents()
 {
-    // On récupère uniquement les utilisateurs commerçants ayant un KBIS
+    // afficheuh les utilisateurs avec un KBISeuh
     $users = User::where('role', 'commercant')
                  ->whereNotNull('kbis')
                  ->get();
@@ -290,7 +287,7 @@ class AdminController extends Controller
 {
     $user = User::findOrFail($id);
 
-    // Inverse la valeur actuelle
+    // positif ou negatif dans la valeureuh (fabio le valeureuh)
     $user->kbis_valide = !$user->kbis_valide;
     $user->save();
 

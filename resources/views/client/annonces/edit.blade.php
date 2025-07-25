@@ -5,7 +5,6 @@
 
     <div class="max-w-3xl mx-auto py-6 space-y-8">
 
-        {{-- Retour --}}
         <div>
             <a href="{{ route('client.annonces.index') }}" class="text-indigo-600 hover:underline text-sm">
                 ← Retour à la liste des annonces
@@ -47,7 +46,6 @@
                     <x-input-error :messages="$errors->get('type')" class="mt-1" />
                 </div>
 
-                {{-- Champs spécifiques au transport --}}
                 <div id="transport-fields" class="space-y-4" style="{{ old('type', $annonce->type) === 'transport' ? '' : 'display: none;' }}">
                     <div>
                         <label for="from_city" class="block text-sm font-medium text-gray-700">Ville de départ</label>
@@ -80,7 +78,6 @@
                     </div>
                 </div>
 
-                {{-- Champs communs --}}
                 <div>
                     <label for="price" class="block text-sm font-medium text-gray-700">Prix (€)</label>
                     <x-text-input id="price" name="price" type="number" step="0.01" class="mt-1" value="{{ old('price', $annonce->price) }}" />

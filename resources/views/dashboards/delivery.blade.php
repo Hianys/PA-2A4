@@ -5,11 +5,11 @@
         </h2>
     </x-slot>
 
-    {{-- Si l'utilisateur n'a pas encore envoyé ses documents --}}
+    {{-- si l'utilisateur a pas envoyé ses doc --}}
 @if (!auth()->user()->identity_document || !auth()->user()->driver_license)
     <div class="w-full bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 py-6 px-6 mb-6">
         <div class="max-w-4xl mx-auto text-center">
-            <p class="font-semibold">⚠️ Vos documents ne sont pas encore validés.</p>
+            <p class="font-semibold">Vos documents ne sont pas encore validés.</p>
             <a href="{{ route('livreur.documents') }}" class="inline-block mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
                 Vérifier mes documents
             </a>
@@ -17,14 +17,14 @@
     </div>
 @endif
 
-{{-- Si les documents ont été envoyés mais pas encore validés --}}
+{{-- les doc ont pas était validéeuh --}}
 @if (
     !auth()->user()->documents_verified &&
     auth()->user()->identity_document &&
     auth()->user()->driver_license
 )
     <div class="w-full bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 py-6 px-6 mb-6">
-       <div class="max-w-4xl mx-auto text-center"> ⚠️ Vos documents sont en attente de validation.
+       <div class="max-w-4xl mx-auto text-center">  Vos documents sont en attente de validation.
         </div>
     </div>
 @endif

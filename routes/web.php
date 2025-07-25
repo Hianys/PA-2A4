@@ -1,5 +1,6 @@
 <?php
 
+//importe la classe en allant chercher ses sous-dossier
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\Client\AnnonceController as ClientAnnonceController;
@@ -8,6 +9,8 @@ use App\Http\Controllers\Delivery\AnnonceController as DeliveryAnnonceController
 use App\Http\Controllers\Provider\AnnonceController as ProviderAnnonceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransportSegmentController;
+
+//acces aux fonctionnalités LARAVEL  
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,8 +19,10 @@ use Illuminate\Support\Facades\Storage;
 
 Route::get('/changeLocale/{locale}', function (string $locale) {
     if (in_array($locale, ['en', 'es', 'fr', 'ar'])) {
+        //récupère la variable $locale et on la met dans localeuh
         session()->put('locale', $locale);
      }
+     //retoureuh page précedente mais mtn avec la variable localeuh
     return redirect()->back();
 });
 
@@ -81,8 +86,10 @@ Route::middleware(['auth'])->group(function () {
 });
 
 //Gestion des annonces pour les clients
+//on appelle le middleware et verifie si l'utilisateur est bien authentifié puis avec la grosseuh fonction on regrpe les routeuh
 Route::middleware(['auth'])->group(function () {
     Route::get('/client/annonces', [ClientAnnonceController::class, 'index'])->name('client.annonces.index');
+    //appelle méthode get, indique l'URL , précise la fonction a utilisé du controller, et enfin on donne a un nom a la rouetuh 
     Route::get('/client/annonces/create', [ClientAnnonceController::class, 'create'])->name('client.annonces.create');
     Route::get('/client/annonces/{annonce}', [ClientAnnonceController::class, 'show'])->name('client.annonces.show');
     Route::get('/client/annonces/{annonce}/edit', [ClientAnnonceController::class, 'edit'])->name('client.annonces.edit');
@@ -128,6 +135,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/commercant/dashboard', [TraderAnnonceController::class, 'dashboard'])->name('trader.dashboard');
     Route::post('/commercant/annonces/{annonce}/payer', [TraderAnnonceController::class, 'payAnnonce'])->name('commercant.annonces.payer');
     Route::post('/commercant/annonces/{annonce}/confirm-payments', [\App\Http\Controllers\Trader\AnnonceController::class, 'confirmPayments'])->name('commercant.annonces.confirmPayments');
+    
+    //ici on appelle via le chemin (pas spécialement utile mais ca se fait)
     Route::get('/annonces/{annonce}/facture', [\App\Http\Controllers\Trader\AnnonceController::class, 'facturePdf'])->middleware('auth')->name('annonce.facture.pdf');
 
 
@@ -163,6 +172,7 @@ Route::get('/upload', function () {
     return view('upload');
 })->name('file.upload.form');
 
+//pour la récupération de fichier uploadé 
 Route::post('/upload', function (Request $request) {
     if ($request->hasFile('fichier')) {
         $file = $request->file('fichier');
@@ -170,8 +180,8 @@ Route::post('/upload', function (Request $request) {
         if (!$file->isValid()) {
             return back()->with('error', 'Le fichier est invalide.');
         }
-
-        $path = $file->store('uploads', 'public'); // => storage/app/public/uploads/...
+        //dans la var on stock $file qui est stocké dans public/uploads
+        $path = $file->store('uploads', 'public'); 
 
         return redirect()->route('file.upload.form')->with('success', 'Fichier uploadé dans : ' . $path);
     }
@@ -194,8 +204,9 @@ Route::get('/document/{filename}', function ($filename) {
     if (!file_exists($path)) {
         abort(404);
     }
-
+    //renvoie dans file le conteuhnu en binaireuh
     $file = file_get_contents($path);
+    //renvoie le typeuh du fichier (png ect)
     $type = mime_content_type($path);
 
     return response($file, 200)->header('Content-Type', $type);

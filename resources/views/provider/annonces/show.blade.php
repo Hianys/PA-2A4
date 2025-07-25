@@ -5,7 +5,6 @@
 
     <div class="max-w-4xl mx-auto py-6 space-y-6">
 
-        {{-- Lien retour --}}
         <div class="flex justify-between">
             <a href="{{ route('provider.dashboard') }}" class="text-indigo-600 hover:underline text-sm">
                 ← @lang("Back to dashboard")
@@ -17,12 +16,12 @@
 
     </div>
 
-        {{-- Détails de l’annonce --}}
         <div class="bg-white shadow rounded-lg p-6">
             <h3 class="text-lg font-bold">{{ $annonce->title }}</h3>
             <p class="text-sm text-gray-600 mt-2">{{ $annonce->description }}</p>
 
-            <div class="mt-4 text-sm text-gray-700 space-y-1">
+            <div class="mt-4 text-sm text-gray-700 space-y-1">          
+
                 <p><strong>@lang('Preferred date'):</strong> {{ \Carbon\Carbon::parse($annonce->preferred_date)->format('d/m/Y') }}</p>
                 <p><strong>@lang('Price'):</strong> {{ $annonce->price }} €</p>
                 <p><strong>@lang('Constraints'):</strong> {{ $annonce->constraints }}</p>
@@ -30,7 +29,6 @@
             </div>
         </div>
 
-        {{-- Boutons d'action --}}
         <div class="bg-white shadow rounded-lg p-6">
             @if (session('success'))
                 <div class="text-green-600 text-sm mb-3">{{ session('success') }}</div>
@@ -40,7 +38,6 @@
                 <div class="text-red-600 text-sm mb-3">{{ session('error') }}</div>
             @endif   
 
-            {{-- Affiche le bouton pour accepter l’annonce si elle est encore disponible --}}
             @if ($annonce->status === 'publiée')
                 <form action="{{ route('provider.annonces.accept', $annonce) }}" method="POST">
                     @csrf
@@ -49,7 +46,7 @@
                     </button>
                 </form>
 
-            {{-- Affiche le bouton pour marquer comme réalisée si elle est déjà acceptée par ce prestataire --}}
+                {{-- status = pris en charge ? provider id = id utilisateur ?  --}}
             @elseif ($annonce->status === 'prise en charge' && $annonce->provider_id === auth()->id())
                 <form action="{{ route('provider.annonces.complete', $annonce) }}" method="POST">
                     @csrf

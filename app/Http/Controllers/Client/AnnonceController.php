@@ -76,7 +76,7 @@ namespace App\Http\Controllers\Client;
 
         $validated = $request->validate($rules);
 
-        // Convertir les champs numériques vides en null
+        // quand c'est videuh ca devient nulleuh
         foreach (['weight', 'volume', 'from_lat', 'from_lng', 'to_lat', 'to_lng'] as $field) {
             if (array_key_exists($field, $validated) && $validated[$field] === '') {
                 $validated[$field] = null;
@@ -165,7 +165,7 @@ namespace App\Http\Controllers\Client;
 
         $validated = $request->validate($rules);
 
-        // Convertir les champs numériques vides en null
+       
         foreach (['weight', 'volume', 'from_lat', 'from_lng', 'to_lat', 'to_lng'] as $field) {
             if (array_key_exists($field, $validated) && $validated[$field] === '') {
                 $validated[$field] = null;
@@ -211,7 +211,7 @@ namespace App\Http\Controllers\Client;
 {
     $client = auth()->user();
 
-    // Vérifie que l'utilisateur est bien le client de l'annonce
+    //verif si le client est celui de l'annonceuh
     if (
         $annonce->user_id !== $client->id ||
         $annonce->status !== 'prise en charge' ||
@@ -226,7 +226,7 @@ namespace App\Http\Controllers\Client;
         // Paiement immédiat
         $this->paymentService->payProviders($annonce);
 
-        // Met à jour le statut de l'annonce
+        // MAJ statut de l'annonceuh
         $annonce->status = 'complétée';
         $annonce->save();
 
@@ -272,12 +272,12 @@ namespace App\Http\Controllers\Client;
         }
 
         try {
-            // Accepter tous les segments en attente
+            // accepteuh tout
             $annonce->segments()->where('status', 'en attente')->update([
                 'status' => 'accepté',
             ]);
 
-            // Changer le statut de l'annonce
+            // nouveau statut pour une nouvelle vieuh
             $annonce->status = 'prise en charge';
             $annonce->save();
 
@@ -297,7 +297,7 @@ namespace App\Http\Controllers\Client;
             abort(403);
         }
 
-        // Vérifie que le livreur est bien lié à cette annonce via au moins un segment
+        // verif de liaison entre livreur et annonceuh au moins via segments
         $livreurId = $user->id;
         $livreurSegments = $annonce->segments()->where('delivery_id', $livreurId)->count();
 
@@ -317,42 +317,41 @@ namespace App\Http\Controllers\Client;
 {
     Log::info('[ Début] confirmTransportDelivery pour annonce ID: ' . $annonce->id);
 
-    // Étape 1 : Auth
     if (auth()->id() !== $annonce->user_id) {
         Log::warning('[ Refusé] Mauvais utilisateur pour confirmer annonce ID: ' . $annonce->id);
         abort(403, 'Vous n’êtes pas autorisé à confirmer cette annonce.');
     }
 
-    // Étape 2 : Vérification statut/type
+    // Vérifi statut/type
     if ($annonce->type !== 'transport' || $annonce->status !== 'en attente de paiement') {
         Log::warning('[ Refusé] Mauvais statut ou type pour annonce ID: ' . $annonce->id);
         return back()->with('error', "L’annonce n’est pas prête pour être confirmée.");
     }
 
-    // Étape 3 : Chargement des segments
+    // Chargement des segments
     $annonce->load('segments');
     Log::info('[ Segments chargés] Nb segments: ' . $annonce->segments->count());
 
-    // Étape 4 : Vérification des statuts segments
+    // verif statit segmenteuh
     if ($annonce->segments->isEmpty() || !$annonce->segments->every(fn($s) => $s->status === 'en attente de paiement')) {
         Log::warning('[ Bloqué] Tous les segments ne sont pas en attente de paiement');
         return back()->with('error', "Tous les segments doivent être en attente de paiement pour confirmer.");
     }
 
     try {
-        // Étape 5 : Paiement via service
+        // Paiement via serviceuh 
         Log::info('[ Paiement] Lancement de processSegmentedPayment...');
         app(PaymentService::class)->processSegmentedPayment($annonce);
         Log::info('[ Paiement OK]');
 
-        // Étape 6 : Marquer les segments comme "accepté"
+        // Marquer les segments comme "accepté"
         foreach ($annonce->segments as $segment) {
-            $segment->status = 'accepté';
+            $segment->status = 'acceptée';
             $segment->save();
         }
         Log::info('[ Segments acceptés]');
 
-        // Étape 7 : Mise à jour annonce
+        //MAJ annonce
         $annonce->status = 'complétée';
         $annonce->is_paid = true;
         $annonce->is_confirmed = true;
@@ -378,10 +377,10 @@ public function markAsAwaitingPayment(Annonce $annonce)
     try {
         \Log::info("[ Client] Changement vers 'en attente de paiement' pour annonce ID: " . $annonce->id);
 
-        // Mise à jour des segments
+        // MAJ des segments
         $annonce->segments()->update(['status' => 'en attente de paiement']);
 
-        // Mise à jour de l’annonce
+        // MAJ de l’annonce
         $annonce->status = 'en attente de paiement';
         $annonce->save();
 

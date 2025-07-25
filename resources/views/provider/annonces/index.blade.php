@@ -5,7 +5,6 @@
 
     <div class="max-w-3xl mx-auto py-6 space-y-8">
 
-        {{-- Back --}}
         <div class="flex justify-between">
             <a href="{{ route('provider.dashboard') }}" class="text-indigo-600 hover:underline text-sm">
                 ← @lang("Back to dashboard")
@@ -15,7 +14,6 @@
             </a>
         </div>
 
-        {{-- List of announcements --}}
         @php
             $annonces_a_venir = $annonces->filter(fn($a) => $a->preferred_date >= now());
         @endphp

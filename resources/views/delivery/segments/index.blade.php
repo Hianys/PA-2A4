@@ -4,7 +4,7 @@
     </x-slot>
 
     <div class="max-w-4xl mx-auto py-6 space-y-6">
-        {{-- Segments en attente de validation --}}
+        {{-- pour valider les seuhgment --}}
         @if ($segments->where('status', 'en attente')->count())
             <div class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 mb-6">
                 <p class="font-semibold mb-2">En attente de validation :</p>
@@ -33,7 +33,7 @@
             </div>
         @endif
 
-        {{-- Segments en cours ou livrés --}}
+        {{-- seughment en livraison ou finit de livré euh--}}
         @if ($segments->whereIn('status', ['accepté', 'en cours', 'livré'])->count())
             <div class="space-y-4">
                 @foreach ($segments->whereIn('status', ['accepté', 'en cours', 'livré']) as $segment)
