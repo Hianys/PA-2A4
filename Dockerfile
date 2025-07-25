@@ -1,7 +1,7 @@
 # ---------------------------------------------
 # Étape 1 : installation des dépendances PHP (composer)
 # ---------------------------------------------
-FROM composer:2 AS vendor
+FROM php:8.2-cli AS vendor
 
 WORKDIR /app
 
