@@ -9,7 +9,6 @@
             ← Retour à la liste des annonces
         </a>
 
-        {{-- Informations annonce --}}
         <div class="bg-white shadow p-6 rounded space-y-2">
             <h3 class="text-lg font-bold">{{ $annonce->title }}</h3>
             <p><strong>Type :</strong> {{ ucfirst($annonce->type) }}</p>
@@ -54,7 +53,6 @@
             @endif
         </div>
 
-        {{-- Actions --}}
         <div class="flex gap-4 flex-wrap">
             <a href="{{ route('admin.annonces.edit', $annonce->id) }}"
                class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1 rounded">
@@ -95,7 +93,6 @@
             </form>
         </div>
 
-        {{-- Segments --}}
         @if ($annonce->type === 'transport' && $annonce->segments->count())
             <div class="bg-white shadow p-6 rounded mt-6">
                 <h3 class="text-lg font-bold mb-4">Segments pris en charge</h3>

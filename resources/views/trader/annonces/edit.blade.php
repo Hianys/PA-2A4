@@ -5,7 +5,6 @@
 
     <div class="max-w-3xl mx-auto py-6 space-y-8">
 
-        {{-- Back link --}}
         <div>
             <a href="{{ route('commercant.annonces.index') }}" class="text-indigo-600 hover:underline text-sm">
                 ← @lang("Back to announcements list")
@@ -32,7 +31,6 @@
                     <x-input-error :messages="$errors->get('description')" class="mt-1" />
                 </div>
 
-                {{-- Adresse de départ (readonly) --}}
                 <div>
                     <label for="from_city" class="block text-sm font-medium text-gray-700">@lang("Shipping from (your store)")</label>
                     <input type="text" name="from_city" id="from_city" value="{{ Auth::user()->adresse }}" readonly class="mt-1 block w-full border border-gray-300 rounded bg-gray-100" />

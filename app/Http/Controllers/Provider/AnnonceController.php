@@ -17,13 +17,13 @@ class AnnonceController extends Controller
         abort(403);
     }
 
-    // Les missions acceptées ou complétées par le prestataire
+    // Les missions du prestaeuh
     $missions = Annonce::where('provider_id', $user->id)
         ->whereIn('status', ['prise en charge', 'complétée'])
         ->latest()
         ->get();
 
-    // Calcul des revenus du mois
+    // Calcul revenu du mois euh 
     $revenus = $missions
         ->where('status', 'complétée')
         ->whereBetween('preferred_date', [
@@ -43,7 +43,7 @@ class AnnonceController extends Controller
         abort(403);
     }
 
-    // Affiche uniquement les annonces de type "service" qui n'ont pas encore été acceptées
+    // annonce serviceuh encore pas prise en chargeuh
     $annonces = Annonce::where('type', 'service')
         ->whereNull('provider_id')
         ->where('status', 'publiée')
@@ -97,12 +97,12 @@ class AnnonceController extends Controller
 {
     $user = Auth::user();
 
-    // Ne montrer que les annonces de type "service"
+    // que les serviceux
     if ($annonce->type !== 'service') {
         abort(403);
     }
 
-    // Si la mission est déjà acceptée par un autre prestataire, bloquer l'accès
+    // deja prise en chargeuh donc invisibleuh
     if ($annonce->status === 'prise en charge' && $annonce->provider_id !== $user->id) {
         abort(403);
     }
@@ -164,7 +164,7 @@ class AnnonceController extends Controller
             return redirect()->back()->with('error', 'La mission n\'est pas en cours.');
         }
 
-        // Si l'annonce nécessite une validation de paiement, on passe à "en attente de paiement"
+        // si besoins passe en attente de paieuhment
         if ($annonce->requires_payment_validation) {
             $annonce->status = 'en attente de paiement';
         } else {
@@ -180,17 +180,17 @@ class AnnonceController extends Controller
 {
     $user = Auth::user();
 
-    // Vérifie que l'annonce est de type "service" et encore disponible
+    // Vérifie de l'annonceuuuuuuuuuuuuh
     if ($annonce->type !== 'service' || $annonce->status !== 'publiée') {
         return redirect()->back()->with('error', 'Cette annonce ne peut pas être acceptée.');
     }
 
-    // Vérifie que l'annonce n'est pas déjà prise
+   
     if ($annonce->provider_id !== null) {
         return redirect()->back()->with('error', 'Cette annonce a déjà été acceptée par un autre prestataire.');
     }
 
-    // Associe la mission au prestataire connecté
+    // association annonce au presta connectéeuh
     $annonce->provider_id = $user->id;
     $annonce->status = 'prise en charge';   
     $annonce->save();
@@ -206,7 +206,7 @@ class AnnonceController extends Controller
         abort(403);
     }
 
-    // Toutes les missions acceptées ou complétées
+    // toute nos missions
     $annonces = Annonce::where('provider_id', $user->id)
         ->whereIn('status', ['prise en charge', 'complétée'])
         ->latest()
@@ -224,16 +224,14 @@ class AnnonceController extends Controller
         return back()->with('error', 'Fonds insuffisants.');
     }
 
-    // Débloquer et transférer
+    // debloqueuh puis transfereuh (sur le compte sinon ca reste dans bloqué lol)
     $prestataire->wallet->blocked_balance -= $amount;
     $prestataire->wallet->balance += $amount;
     $prestataire->wallet->save();
 
-    // Valider l’annonce
     $annonce->is_confirmed = true;
     $annonce->save();
 
-    // Mettre à jour la transaction
     $transaction = $prestataire->wallet->transactions()
         ->where('type', 'service')
         ->where('status', 'pending')

@@ -8,7 +8,6 @@
 </head>
 <body class="bg-white text-gray-800">
 
-<!-- Header -->
 <header class="bg-white shadow">
     <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between">
         <div class="flex items-center gap-4">
@@ -16,14 +15,13 @@
             <h1 class="text-2xl font-bold text-indigo-600">Ecodeli</h1>
         </div>
         <div class="flex gap-4 items-center">
+            <!-- verif si utilisateureuh connecté -->
             @auth
-                <!-- Si l'utilisateur est connecté -->
                 <a href="{{ dashboard_route_for(Auth::user()->role) }}"
                    class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow">
                      @lang("access my space")
                 </a>
             @else
-                <!-- Sinon, boutons login / register -->
                 <a href="{{ route('login') }}" class="px-6 py-3 bg-white text-indigo-600 hover:bg-indigo-100 rounded-lg border border-indigo-600 shadow">
                     @lang("login")
                 </a>
@@ -51,7 +49,7 @@
 </section>
 
 <!-- Footer -->
-<footer class="py-6 text-center text-sm text-gray-400>
+<footer class="py-6 text-center text-sm text-gray-400">
     Projet annuel — IUT &copy; {{ date('Y') }}
 </footer>
 

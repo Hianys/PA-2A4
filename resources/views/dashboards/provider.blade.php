@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
-            @lang("Welcome"), {{ Auth::user()->name }} 👋
+            @lang("Welcome"), {{ Auth::user()->name }} 
         </h2>
     </x-slot>
 
@@ -83,7 +83,7 @@
                 @endif
             </div>
 
-            {{-- Calendrier --}}
+            {{-- Calendriéeuh (topmoumouteuh) --}}
             <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-6 rounded-lg shadow-md">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-xl font-semibold">@lang("Calendar")</h3>
@@ -101,7 +101,6 @@
                 </div>
             </div>
 
-            {{-- Revenus --}}
             <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-6 rounded-lg shadow-md">
                 <h3 class="text-xl font-semibold mb-2">@lang("Revenue for this month")</h3>
                 <p class="text-2xl font-bold text-green-600">{{ $revenus }} €</p>

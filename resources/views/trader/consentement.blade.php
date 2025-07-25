@@ -19,6 +19,8 @@
                 <input type="hidden" name="enseigne" value="{{ $enseigne }}">
             </div>
 
+            {{-- petite box a cocher--}}
+
             <div class="flex items-center">
                 <input type="checkbox" name="accept_terms" id="accept_terms"
                     class="mr-2"

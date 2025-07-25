@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
         ->name('verification.notice');
 
     Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+        //throttle pour avoir max 6 mail par minuteuh 
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
 

@@ -5,14 +5,12 @@
 
     <div class="max-w-3xl mx-auto py-6 space-y-8">
 
-        {{-- Back link --}}
         <div>
             <a href="{{ route('commercant.annonces.index') }}" class="text-indigo-600 hover:underline text-sm">
                 ← @lang("Back to announcements list")
             </a>
         </div>
 
-        {{-- Form --}}
         <div class="bg-white shadow rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-4">@lang("New transport announcement")</h3>
 
@@ -85,6 +83,8 @@
             </form>
         </div>
     </div>
+
+    {{-- affiche (ou pas) transport-fields --}}
 
     <x-autocomplete-script />
 

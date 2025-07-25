@@ -28,17 +28,6 @@ class AnnonceController extends Controller
         ->latest()
         ->get();
 
-    /*
-    //Annonces avec un segment pris en charge par ce livreur
-    $annoncesViaSegments = \App\Models\Annonce::whereHas('segments', function ($query) use ($user) {
-        $query->where('delivery_id', $user->id);
-    })->get();
-
-    // Annonces où il est directement désigné comme livreur
-    $annoncesDirectes = \App\Models\Annonce::where('livreur_id', $user->id)->get();
-
-    // Fusion des deux collections
-    $annonces = $annoncesViaSegments->merge($annoncesDirectes)->sortByDesc('created_at');*/
 
     return view('delivery.annonces.index', compact('annonces'));
 }
@@ -53,7 +42,6 @@ class AnnonceController extends Controller
         abort(404, 'Cette annonce est archivée.');
     }
 
-    // recharge les relations et l'objet
     $annonce->refresh();
     $annonce->load('segments.delivery');
     $segments = $annonce->segments;
@@ -85,23 +73,21 @@ class AnnonceController extends Controller
 
         public function confirmerAnnonce(Request $request, Annonce $annonce)
 {
-    $prestataire = $annonce->acceptedBy; // même remarque
+    $prestataire = $annonce->acceptedBy; 
     $amount = $annonce->price;
 
     if ($prestataire->wallet->blocked_balance < $amount) {
         return back()->with('error', 'Fonds insuffisants.');
     }
 
-    // Débloquer et transférer
+    // Débloque et transférereuh les sous
     $prestataire->wallet->blocked_balance -= $amount;
     $prestataire->wallet->balance += $amount;
     $prestataire->wallet->save();
 
-    // Valider l’annonce
     $annonce->is_confirmed = true;
     $annonce->save();
 
-    // Mettre à jour la transaction
     $transaction = $prestataire->wallet->transactions()
         ->where('type', 'service')
         ->where('status', 'pending')
@@ -120,24 +106,22 @@ class AnnonceController extends Controller
 {
     $livreur = auth()->user();
 
-    // Vérification
+    // Vérification si il s'agit d'un' livreureuh
     if (!$livreur->isDelivery()) {
         abort(403, 'Vous n’êtes pas livreur.');
     }
 
-    // Le livreur doit avoir participé à l'annonce
+    // verif si c'est un des bon livreurs et pas un imposteureuh
     $segments = $annonce->segments()->where('delivery_id', $livreur->id)->get();
     if ($segments->isEmpty()) {
         return back()->with('error', 'Vous ne participez pas à cette livraison.');
     }
 
-    // Mettre à jour les segments du livreur en "en attente de paiement"
     foreach ($segments as $segment) {
         $segment->status = 'en attente de paiement';
         $segment->save();
     }
 
-    // Mettre l'annonce en "en attente de paiement" (si pas déjà)
     if ($annonce->status !== 'en attente de paiement') {
         $annonce->status = 'en attente de paiement';
         $annonce->save();
@@ -151,10 +135,10 @@ class AnnonceController extends Controller
 {
     $user = auth()->user();
 
-    // Annonces où le livreur est principal
+    // Annonces où le livreur est seuleuuuh au mondeuh
     $direct = Annonce::where('livreur_id', $user->id);
 
-    // Annonces où le livreur a participé via un segment
+    
     $segments = Annonce::whereHas('segments', function ($q) use ($user) {
         $q->where('delivery_id', $user->id);
     });

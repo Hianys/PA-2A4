@@ -5,14 +5,12 @@
 
         <div class="max-w-4xl mx-auto py-6 space-y-6">
 
-            {{-- Lien retour --}}
             <div>
                 <a href="{{ route('client.annonces.index') }}" class="text-indigo-600 hover:underline text-sm">
                     ← @lang("Back to announcements list")
                 </a>
             </div>
 
-            {{-- Détails de l'annonce --}}
             <div class="bg-white shadow rounded-lg p-6">
                 <h3 class="text-lg font-bold">{{ $annonce->title }}</h3>
                 <p class="text-sm text-gray-600 mt-2">{{ $annonce->description }}</p>
@@ -51,10 +49,8 @@
                     </div>
                 @endif
 
-                {{-- Actions générales --}}
                 <div class="mt-6 flex flex-wrap gap-2">
 
-                    {{-- Modifier / Supprimer --}}
                     @if ($annonce->status === 'publiée')
                         <a href="{{ route('client.annonces.edit', $annonce) }}"
                         class="bg-yellow-500 text-white px-3 py-2 rounded hover:bg-yellow-600">
@@ -71,7 +67,6 @@
                         </form>
                     @endif
 
-                    {{-- Valider livraison pour transport --}}
                     @if ($annonce->type === 'transport' && $annonce->status === 'publiée')
         <form method="POST" action="{{ route('client.annonces.validate.segments', $annonce) }}">
             @csrf
@@ -80,7 +75,6 @@
             </button>
         </form>
     @endif
-                    {{-- Valider service + payer --}}
                     @if ($annonce->type === 'service' && $annonce->status === 'prise en charge' && $annonce->provider)
                         <div class="mt-6">
                             <form method="POST" action="{{ route('client.annonces.validate', $annonce) }}"
@@ -94,7 +88,6 @@
                         </div>
                     @endif
 
-                    {{-- Valider livraison + payer --}}
                     @if ($annonce->type === 'transport' && $annonce->status === 'en attente de paiement')
                         <div class="mt-6">
                             <form method="POST" action="{{ route('client.annonces.confirmTransport', $annonce) }}"
@@ -110,7 +103,7 @@
                 </div>
             </div>
 
-            {{-- Carte --}}
+            {{-- petiteuh mapeuh --}}
             @if ($annonce->type === 'transport')
                 <div id="map" class="w-full h-96 rounded shadow"></div>
             @endif
@@ -146,7 +139,7 @@
                 if (popup) {
                     setTimeout(() => {
                         popup.style.display = 'none';
-                    }, 4000); // Disparait au bout de 4s
+                    }, 4000); 
                 }
             });
         </script> 

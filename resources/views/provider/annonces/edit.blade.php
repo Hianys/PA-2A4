@@ -5,7 +5,6 @@
 
     <div class="max-w-3xl mx-auto py-6 space-y-8">
 
-        {{-- Back link --}}
         <div>
             <a href="{{ route('provider.annonces.index') }}" class="text-indigo-600 hover:underline text-sm">
                 ← @lang("Back to announcements list")
@@ -47,7 +46,6 @@
                     <x-input-error :messages="$errors->get('type')" class="mt-1" />
                 </div>
 
-                {{-- Transport-specific fields --}}
                 <div id="transport-fields" class="space-y-4" style="{{ old('type', $annonce->type) === 'transport' ? '' : 'display: none;' }}">
                     <div>
                         <label for="from_city" class="block text-sm font-medium text-gray-700">@lang("Departure city")</label>
@@ -74,7 +72,6 @@
                     </div>
                 </div>
 
-                {{-- Common fields --}}
                 <div>
                     <label for="price" class="block text-sm font-medium text-gray-700">@lang("Price") (€)</label>
                     <x-text-input id="price" name="price" type="number" step="0.01" class="mt-1" value="{{ old('price', $annonce->price) }}" />

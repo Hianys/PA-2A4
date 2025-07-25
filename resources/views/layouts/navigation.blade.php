@@ -1,7 +1,6 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-200 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <!-- Logo + Dashboard link -->
             <div class="flex items-center space-x-4">
                 <a href="{{ route('home') }}">
                     <x-application-logo class="h-8 w-auto sm:h-10" />
@@ -11,7 +10,6 @@
                 </x-nav-link>
             </div>
 
-            <!-- User dropdown -->
             <div class="hidden sm:flex sm:items-center">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -32,7 +30,6 @@
                          Mon portefeuille
                         </x-dropdown-link>
 
-                        <!-- Logout -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-dropdown-link href="{{ route('logout') }}"
@@ -44,7 +41,6 @@
                 </x-dropdown>
             </div>
 
-            <!-- Mobile menu button -->
             <div class="-mr-2 flex items-center sm:hidden">
                 <button @click="open = ! open" class="p-2 text-gray-500 hover:text-indigo-600 focus:outline-none">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -60,7 +56,6 @@
         </div>
     </div>
 
-    <!-- Mobile menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="dashboard_route_for(Auth::user()->role)" :active="request()->url() === dashboard_route_for(Auth::user()->role)">
@@ -79,7 +74,7 @@
                     @lang('my profile')
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('wallet.index')">
-               💰 Mon portefeuille
+                Mon portefeuille
                 </x-responsive-nav-link>
 
                 <form method="POST" action="{{ route('logout') }}">

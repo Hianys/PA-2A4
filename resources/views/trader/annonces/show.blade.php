@@ -5,9 +5,13 @@
         </h2>
     </x-slot>
 
+    {{-- grosse fonction pour calculer si un point rejoint bien un autreuh --}}
+
     @php
     function haversine($lat1, $lon1, $lat2, $lon2) {    
     if (!$lat1 || !$lon1 || !$lat2 || !$lon2) return 0;
+    {{-- variable du ... rayon de la terre  --}}
+
     $earthRadius = 6371;
     $lat1 = deg2rad($lat1);
     $lon1 = deg2rad($lon1);
@@ -45,6 +49,7 @@
                 </div>
                 <div>
                     <strong>@lang("Constraints"):</strong>
+                    {{-- ?? = si n'est pas null alors affiche contrainte sinon affiche - --}}
                     <span>{{ $annonce->constraints ?? '-' }}</span>
                 </div>
                 <div>
@@ -95,6 +100,8 @@
     <div class="bg-white shadow rounded-lg p-6 mt-6">
         <h3 class="text-lg font-semibold mb-4">Récapitulatif des livreurs rémunérés</h3>
 
+        {{-- récupère les segm et calcule leur distance totale puis vois qui fais quoi --}}
+
         @php
             $segments = $annonce->segments()->where('status', 'accepté')->get();
             $totalDistance = $segments->sum(function($s) {
@@ -102,6 +109,8 @@
             });
             $grouped = $segments->groupBy('delivery_id');
         @endphp
+
+        {{-- création d'un tab--}}
 
         <table class="w-full text-sm text-left border">
             <thead class="bg-gray-100">
@@ -113,6 +122,7 @@
                 </tr>
             </thead>
             <tbody>
+
                 @foreach ($grouped as $livreurId => $livreurSegments)
                     @php
                         $livreur = $livreurSegments->first()->delivery;
@@ -152,7 +162,7 @@
         Télécharger la facture PDF
     </a>
 @endif
-{{-- Segments à valider (comme chez le client) --}}
+{{-- Segments à valider --}}
 @if ($annonce->segments->where('status', 'en attente')->count())
     <div class="mt-6 bg-white shadow rounded-lg p-6">
         <h3 class="text-md font-semibold mb-4">@lang("Supported Segments")</h3>

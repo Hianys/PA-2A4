@@ -14,7 +14,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class AnnonceController extends Controller
 {
-    // Dashboard commerçant
     public function dashboard()
     {
 
@@ -23,7 +22,7 @@ class AnnonceController extends Controller
             abort(403);
         }
 
-        // Toutes les annonces de transport postées par CE commerçant
+        // les annonce lié au commercant de la seuhssioneuh
         $annonces = Annonce::where('user_id', $user->id)
             ->where('type', 'transport')
             ->latest()
@@ -32,7 +31,7 @@ class AnnonceController extends Controller
         return view('dashboards.trader', compact('annonces'));
     }
 
-    // Liste des annonces du commerçant
+    // listeuh annonceuh
     public function index()
     {
         $user = Auth::user();
@@ -48,7 +47,6 @@ class AnnonceController extends Controller
         return view('trader.annonces.index', compact('annonces'));
     }
 
-    // Formulaire de création
     public function create()
 {
     $user = Auth::user();
@@ -62,13 +60,11 @@ class AnnonceController extends Controller
             ->with('error', 'Vous ne pouvez pas publier d\'annonce tant que votre KBIS n\'est pas validé.');
     }
 
-    // On passe l'adresse préremplie
     $adresse = $user->adresse;
 
     return view('trader.annonces.create', compact('adresse'));
 }
 
-    // Sauvegarde annonce
     public function store(Request $request)
 {
     $user = Auth::user();
@@ -89,18 +85,17 @@ class AnnonceController extends Controller
 
 $annonce = new Annonce($validated);
 
-// Coordonnées GPS (si valides)
+// Coordonnées GPS 
 $annonce->from_lat = is_numeric($request->from_lat) ? $request->from_lat : null;
 $annonce->from_lng = is_numeric($request->from_lng) ? $request->from_lng : null;
 $annonce->to_lat   = is_numeric($request->to_lat)   ? $request->to_lat   : null;
 $annonce->to_lng   = is_numeric($request->to_lng)   ? $request->to_lng   : null;
 
-// Infos auto
 $annonce->user_id = $user->id;
 $annonce->type = 'transport';
 $annonce->status = 'publiée';
 
-// Fichier kbis si envoyé
+// Fichier kbis 
 if ($request->hasFile('kbis')) {
     $annonce->kbis = $request->file('kbis')->store('annonces', 'public');
 }
@@ -175,17 +170,16 @@ public function markCompleted(Annonce $annonce, PaymentService $paymentService)
     }
 
     try {
-        // Étape 1 : Paiement et blocage
         $paymentService->processSegmentedPayment($annonce);
 
-        // Étape 2 : Libération immédiate des fonds
+        //  de(CHARGE) les fonds  
         $segments = $annonce->segments()->where('status', 'accepté')->get();
         $grouped = $segments->groupBy('delivery_id');
 
         foreach ($grouped as $livreurId => $livreurSegments) {
             $livreur = $livreurSegments->first()->delivery;
 
-            // Transactions en attente
+            
             $transactions = $livreur->wallet->transactions()
                 ->where('status', 'pending')
                 ->where('type', 'delivery')
@@ -207,7 +201,6 @@ public function markCompleted(Annonce $annonce, PaymentService $paymentService)
             $livreur->wallet->save();
         }
 
-        // Mise à jour de l’annonce
         $annonce->status = 'complétée';
         $annonce->is_paid = true;
         $annonce->is_confirmed = true;
@@ -239,16 +232,16 @@ public function markCompleted(Annonce $annonce, PaymentService $paymentService)
             return back()->withErrors(['kbis' => 'Erreur lors de l\'upload du fichier.']);
         }
 
-        // Supprimer l'ancien fichier s'il existe
+        // Supprimer l'ancien fichier s'il existeuh
         if ($user->kbis && \Storage::disk('public')->exists($user->kbis)) {
             \Storage::disk('public')->delete($user->kbis);
         }
 
-        // Générer un nom de fichier propre
+        // nouvelle identité pour le kbis (juste changer le nom de fichier)
         $extension = $kbisFile->getClientOriginalExtension();
         $filename = uniqid('kbis_') . ($extension ? '.' . $extension : '');
 
-        // Stocker dans le disque "public" (storage/app/public/commercant_docs)
+        // Stocker dans le disque "public" 
         $kbisFile->storeAs('commercant_docs', $filename, ['disk' => 'public']);
         $filePath = 'commercant_docs/' . $filename;
 
@@ -301,7 +294,7 @@ public function markCompleted(Annonce $annonce, PaymentService $paymentService)
 public function validerConsentement(Request $request)
 {
     $request->validate([
-        'accept_terms' => 'nullable', // facultatif si décoché
+        'accept_terms' => 'nullable', 
         'enseigne' => 'required|string|max:255',
     ]);
 
@@ -330,12 +323,11 @@ public function telechargerPdf()
 {
     $commercant = auth()->user();
 
-    // Vérifie que le commerçant est bien propriétaire de l'annonce
+    //commercant = proprietaireuh de l'annonceuh ? 
     if ($annonce->user_id !== $commercant->id) {
         abort(403);
     }
 
-    // Vérifie qu’un livreur a bien été assigné
     $livreur = $annonce->livreur;
     if (!$livreur) {
         return back()->with('error', 'Aucun livreur assigné à cette annonce.');
@@ -343,33 +335,28 @@ public function telechargerPdf()
 
     $amount = $annonce->price;
 
-    // Vérifie solde
     if ($commercant->wallet->balance < $amount) {
         return back()->with('error', 'Solde insuffisant.');
     }
 
-    // Débit du commerçant
     $commercant->wallet->balance -= $amount;
     $commercant->wallet->save();
 
     $commercant->wallet->transactions()->create([
         'type' => 'delivery',
         'amount' => $amount,
-        'status' => 'completed', // car l’argent a été débité immédiatement
+        'status' => 'completed', 
     ]);
 
-    // Blocage sur le compte du livreur
     $livreur->wallet->blocked_balance += $amount;
     $livreur->wallet->save();
 
-    // Créer transaction bloquée pour le livreur
     $livreur->wallet->transactions()->create([
         'type' => 'delivery',
         'amount' => $amount,
-        'status' => 'pending', // elle sera confirmée plus tard
+        'status' => 'pending', // elle sera confirmée plus tard pendant la confirmation (j'ai fais en sorte qu'elle bloque pas hehe)
     ]);
 
-    // Marquer annonce comme payée
     $annonce->is_paid = true;
     $annonce->save();
 
@@ -400,7 +387,6 @@ public function confirmer(Request $request, \App\Models\Annonce $annonce)
     $livreur->wallet->balance += $amount;
     $livreur->wallet->save();
 
-    // Marque transaction comme complétée
     $transaction = $livreur->wallet->transactions()
         ->where('type', 'delivery')
         ->where('status', 'pending')
@@ -412,7 +398,6 @@ public function confirmer(Request $request, \App\Models\Annonce $annonce)
         $transaction->save();
     }
 
-    // Mettre à jour l’annonce
     $annonce->is_confirmed = true;
     $annonce->status = 'complétée';
     $annonce->save();
@@ -440,7 +425,6 @@ public function confirmer(Request $request, \App\Models\Annonce $annonce)
         $livreur = $livreurSegments->first()->delivery;
         $totalAmount = 0;
 
-        // Trouver les transactions en attente
         $transactions = $livreur->wallet->transactions()
             ->where('status', 'pending')
             ->where('type', 'delivery')
@@ -470,15 +454,14 @@ public function confirmer(Request $request, \App\Models\Annonce $annonce)
 {
     $user = auth()->user();
 
-    // 1. Annonces où il est le livreur principal
+    //il est livreureuh principal 
     $annoncesPrincipales = \App\Models\Annonce::where('livreur_id', $user->id)->get();
 
-    // 2. Annonces où il a au moins un segment
+    //il a un segment dans celle ci
     $annoncesSegments = \App\Models\Annonce::whereHas('segments', function ($query) use ($user) {
         $query->where('delivery_id', $user->id);
     })->get();
 
-    // Fusionner et enlever les doublons
     $annonces = $annoncesPrincipales->merge($annoncesSegments)->unique('id');
 
     return view('delivery.annonces.mes', compact('annonces'));

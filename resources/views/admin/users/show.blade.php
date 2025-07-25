@@ -11,7 +11,6 @@
             </a>
         </div>
 
-        {{-- Informations utilisateur --}}
         <div class="bg-white shadow p-6 rounded">
             <h3 class="text-lg font-semibold mb-4">Informations</h3>
             <p><strong>Nom :</strong> {{ $user->name }}</p>
@@ -20,7 +19,6 @@
             <p><strong>Créé le :</strong> {{ $user->created_at->format('d/m/Y') }}</p>
         </div>
 
-        {{-- Actions admin --}}
         <div class="bg-white shadow p-6 rounded flex gap-4">
             @if ($user->role !== 'admin')
                 <form action="{{ route('admin.promote', $user->id) }}" method="POST">
@@ -56,7 +54,6 @@
             </form>
         </div>
 
-        {{-- Annonces du client ou commerçant --}}
         @if (count($annonces))
             <div class="bg-white shadow p-6 rounded">
                 <h3 class="text-lg font-semibold mb-4">Annonces</h3>
@@ -77,7 +74,6 @@
             </div>
         @endif
 
-        {{-- Segments du livreur --}}
         @if (count($segments))
             <div class="bg-white shadow p-6 rounded">
                 <h3 class="text-lg font-semibold mb-4">Segments pris en charge</h3>
